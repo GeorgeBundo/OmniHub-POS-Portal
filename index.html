@@ -440,6 +440,186 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   letter-spacing:-.045em;
   line-height:1.15;
 }
+.realtime-panel{overflow:hidden}
+.realtime-heading{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+}
+.realtime-title-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.realtime-title-row h3{margin:0}
+.live-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  min-height:24px;
+  padding:4px 8px;
+  border:1px solid color-mix(in srgb,var(--ok) 32%,var(--line));
+  border-radius:999px;
+  background:color-mix(in srgb,var(--ok) 9%,var(--panel));
+  color:var(--ok);
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.1em;
+}
+.live-badge::before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--ok);
+  box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 16%,transparent);
+  animation:livePulse 1.8s ease-out infinite;
+}
+.live-badge.offline{
+  border-color:color-mix(in srgb,var(--warn) 40%,var(--line));
+  background:color-mix(in srgb,var(--warn) 10%,var(--panel));
+  color:var(--warn);
+}
+.live-badge.offline::before{background:var(--warn);animation:none}
+@keyframes livePulse{50%{box-shadow:0 0 0 8px transparent}}
+.insight-updated{
+  color:var(--muted);
+  font-size:9px;
+  font-weight:600;
+  white-space:nowrap;
+}
+.insight-grid{
+  display:grid;
+  grid-template-columns:1.35fr 1fr 1fr 1fr;
+  gap:13px;
+  margin-top:18px;
+}
+.insight-card{
+  min-width:0;
+  min-height:218px;
+  padding:17px;
+  border:1px solid var(--line);
+  border-radius:15px;
+  background:var(--panel-soft);
+}
+.insight-card h4{
+  margin:0;
+  font-size:11px;
+  letter-spacing:-.01em;
+}
+.insight-card .caption{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:8px;
+  line-height:1.45;
+}
+.pulse-bars{
+  display:grid;
+  grid-template-columns:repeat(12,minmax(5px,1fr));
+  align-items:end;
+  gap:5px;
+  height:128px;
+  margin-top:17px;
+  padding-top:8px;
+  border-bottom:1px solid var(--line-strong);
+}
+.pulse-column{
+  position:relative;
+  height:100%;
+  display:flex;
+  align-items:flex-end;
+}
+.pulse-bar{
+  width:100%;
+  min-height:4px;
+  border-radius:5px 5px 2px 2px;
+  background:linear-gradient(180deg,var(--red),color-mix(in srgb,var(--red) 50%,var(--panel-soft)));
+  transition:height .28s ease;
+}
+.pulse-labels{
+  display:flex;
+  justify-content:space-between;
+  margin-top:7px;
+  color:var(--muted);
+  font-size:7px;
+  font-weight:700;
+}
+.donut-layout{
+  display:grid;
+  grid-template-columns:86px minmax(0,1fr);
+  align-items:center;
+  gap:14px;
+  margin-top:22px;
+}
+.donut{
+  position:relative;
+  width:86px;
+  aspect-ratio:1;
+  border-radius:50%;
+  background:var(--line);
+}
+.donut::after{
+  content:"";
+  position:absolute;
+  inset:20px;
+  border-radius:50%;
+  background:var(--panel-soft);
+  box-shadow:0 0 0 1px var(--line);
+}
+.legend{display:flex;flex-direction:column;gap:8px;min-width:0}
+.legend-item{
+  display:grid;
+  grid-template-columns:8px minmax(0,1fr) auto;
+  gap:7px;
+  align-items:center;
+  color:var(--muted);
+  font-size:8px;
+}
+.legend-dot{width:8px;height:8px;border-radius:3px}
+.legend-item strong{color:var(--text);font-size:9px}
+.bar-list{
+  display:flex;
+  flex-direction:column;
+  gap:17px;
+  margin-top:26px;
+}
+.bar-row-head{
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:7px;
+  color:var(--muted);
+  font-size:8px;
+  font-weight:700;
+}
+.bar-row-head strong{color:var(--text);font-size:10px}
+.track{
+  height:8px;
+  overflow:hidden;
+  border-radius:999px;
+  background:var(--line);
+}
+.track-fill{
+  height:100%;
+  min-width:3px;
+  border-radius:inherit;
+  background:var(--red);
+  transition:width .28s ease;
+}
+.track-fill.blue{background:#4F7CFF}
+.track-fill.green{background:var(--ok)}
+.track-fill.amber{background:#E3A008}
+.track-fill.muted-fill{background:#8A9099}
+.insight-empty{
+  display:grid;
+  place-items:center;
+  min-height:120px;
+  color:var(--muted);
+  font-size:9px;
+  text-align:center;
+}
 .panel{
   margin-top:17px;
   padding:22px;
@@ -587,6 +767,7 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
   .app{grid-template-columns:220px minmax(0,1fr)}
   .main{padding:24px 22px 38px}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .insight-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media(max-width:900px){
   .auth-shell{grid-template-columns:1fr}
@@ -619,6 +800,8 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
   .topbar{align-items:flex-start;flex-direction:column}
   .top-actions{width:100%;justify-content:space-between}
   .grid,.form-grid{grid-template-columns:1fr}
+  .insight-grid{grid-template-columns:1fr}
+  .realtime-heading{flex-direction:column;gap:8px}
   .form-grid .full{grid-column:auto}
   .metric{min-height:104px}
   .panel{padding:16px}
@@ -664,7 +847,19 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
   <main class="main">
     <div class="topbar"><div><h1 id="pageTitle">Dashboard</h1><div class="muted">OmniHub Solutions management portal</div></div><div class="top-actions"><button id="themeToggle" class="theme-toggle" type="button" aria-pressed="false" aria-label="Switch to dark mode"><span id="themeIcon" class="theme-icon" aria-hidden="true">☾</span><span id="themeLabel">Dark mode</span></button><div id="profileChip" class="profile-chip"></div></div></div>
 
-    <section id="dashboardPage"><div class="grid"><div class="metric"><div class="label">Net sales today</div><div id="salesTotal" class="value">USD 0.00 · ZiG 0.00</div></div><div class="metric"><div class="label">Transactions</div><div id="transactions" class="value">0</div></div><div class="metric"><div class="label">Outstanding change</div><div id="outstanding" class="value">USD 0.00 · ZiG 0.00</div></div><div class="metric"><div class="label">Low stock</div><div id="lowStock" class="value">0</div></div></div><div class="panel"><div class="panel-head"><h3>Recent transactions</h3><button class="btn ghost" id="refreshDashboard">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Receipt</th><th>Till</th><th>Currency</th><th>Total</th><th>Change owed</th><th>Status</th><th>Date</th></tr></thead><tbody id="salesRows"></tbody></table></div></div></section>
+    <section id="dashboardPage">
+      <div class="grid"><div class="metric"><div class="label">Net sales today</div><div id="salesTotal" class="value">USD 0.00 · ZiG 0.00</div></div><div class="metric"><div class="label">Transactions</div><div id="transactions" class="value">0</div></div><div class="metric"><div class="label">Outstanding change</div><div id="outstanding" class="value">USD 0.00 · ZiG 0.00</div></div><div class="metric"><div class="label">Low stock</div><div id="lowStock" class="value">0</div></div></div>
+      <div class="panel"><div class="panel-head"><h3>Recent transactions</h3><button class="btn ghost" id="refreshDashboard">Refresh</button></div><div class="table-wrap"><table><thead><tr><th>Receipt</th><th>Till</th><th>Currency</th><th>Total</th><th>Change owed</th><th>Status</th><th>Date</th></tr></thead><tbody id="salesRows"></tbody></table></div></div>
+      <div class="panel realtime-panel">
+        <div class="realtime-heading"><div><div class="realtime-title-row"><span id="liveBadge" class="live-badge offline">CONNECTING</span><h3>Realtime business pulse</h3></div><div class="muted">Updates automatically when tills sync sales, payments or stock movements.</div></div><div id="insightUpdated" class="insight-updated">Waiting for live data…</div></div>
+        <div class="insight-grid">
+          <article class="insight-card"><h4>Transaction activity</h4><div class="caption">Completed sales during the last 12 hours</div><div id="salesPulseBars" class="pulse-bars" aria-label="Transactions by hour"></div><div class="pulse-labels"><span id="pulseStart">—</span><span>Now</span></div></article>
+          <article class="insight-card"><h4>Payment mix</h4><div class="caption">Payment methods used today</div><div class="donut-layout"><div id="paymentDonut" class="donut" role="img" aria-label="No payments today"></div><div id="paymentLegend" class="legend"></div></div></article>
+          <article class="insight-card"><h4>Currency activity</h4><div class="caption">Transaction count and value today</div><div id="currencyBars" class="bar-list"></div></article>
+          <article class="insight-card"><h4>Stock health</h4><div class="caption">Active products against reorder levels</div><div id="stockBars" class="bar-list"></div></article>
+        </div>
+      </div>
+    </section>
 
     <section id="transactionsPage" class="hidden"><div class="panel"><div class="panel-head"><h3>Transactions</h3><div class="toolbar"><button class="btn ghost" id="refreshTransactions">Refresh</button></div></div><div id="transactionStatus" class="status hidden"></div><div class="table-wrap"><table><thead><tr><th>Receipt</th><th>Date</th><th>Till</th><th>Currency</th><th>Total</th><th>Change owed</th><th>Status</th><th>Actions</th></tr></thead><tbody id="transactionRows"></tbody></table></div></div></section>
 
@@ -755,7 +950,13 @@ $('setupForm').onsubmit=async e=>{e.preventDefault();const setup={display_name:$
 $('resetForm').onsubmit=async e=>{e.preventDefault();const {error}=await supabase.auth.resetPasswordForEmail($('resetEmail').value.trim(),{redirectTo:location.origin+location.pathname});if(error)return status('authStatus',error.message,'error');status('authStatus','Password reset email sent. Open the link in the email on this browser.','ok')};
 $('newPasswordForm').onsubmit=async e=>{e.preventDefault();const {error}=await supabase.auth.updateUser({password:$('newPassword').value});if(error)return status('authStatus',error.message,'error');status('authStatus','Password changed. You may now sign in.','ok');await supabase.auth.signOut();switchAuth('login')};
 supabase.auth.onAuthStateChange((event)=>{if(event==='PASSWORD_RECOVERY'){$('loginForm').classList.add('hidden');$('setupForm').classList.add('hidden');$('resetForm').classList.add('hidden');$('newPasswordForm').classList.remove('hidden');status('authStatus','Enter a new password for this account.','ok')}});
-async function loadDashboard(){const from=new Date();from.setHours(0,0,0,0);const {data,error}=await supabase.rpc('get_dashboard_summary',{p_from:from.toISOString()});if(!error&&data){$('salesTotal').textContent=currencyMap(data.net_sales_by_currency);$('transactions').textContent=data.transactions||0;$('outstanding').textContent=currencyMap(data.outstanding_change_by_currency);$('lowStock').textContent=data.low_stock_count||0}else if(error){$('salesTotal').textContent='Restricted'}const {data:sales}=await supabase.from('sales').select('receipt_number,till_code,currency,total,change_owed,status,client_created_at').order('client_created_at',{ascending:false}).limit(30);$('salesRows').innerHTML='';(sales||[]).forEach(s=>{const tr=document.createElement('tr');[s.receipt_number,s.till_code,s.currency,money(s.total,s.currency),money(s.change_owed,s.currency),s.status,new Date(s.client_created_at).toLocaleString()].forEach(v=>tr.appendChild(td(v)));$('salesRows').appendChild(tr)})}
+function renderSalesPulse(sales){const container=$('salesPulseBars');container.innerHTML='';const now=new Date();const slots=[];for(let offset=11;offset>=0;offset--){const start=new Date(now);start.setMinutes(0,0,0);start.setHours(start.getHours()-offset);slots.push({start,count:0})}(sales||[]).forEach(s=>{const at=new Date(s.client_created_at);const slot=slots.find(x=>at>=x.start&&at<new Date(x.start.getTime()+3600000));if(slot)slot.count++});const maximum=Math.max(1,...slots.map(x=>x.count));slots.forEach(slot=>{const column=document.createElement('div');column.className='pulse-column';column.title=slot.start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})+' · '+slot.count+' transaction(s)';const bar=document.createElement('div');bar.className='pulse-bar';bar.style.height=Math.max(4,(slot.count/maximum)*100)+'%';column.appendChild(bar);container.appendChild(column)});$('pulseStart').textContent=slots[0].start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}
+function renderPaymentMix(payments){const counts={};(payments||[]).forEach(p=>{const key=String(p.method||'other').replaceAll('_',' ');counts[key]=(counts[key]||0)+1});const entries=Object.entries(counts).sort((a,b)=>b[1]-a[1]);const total=entries.reduce((sum,x)=>sum+x[1],0);const colours=['#FF0000','#4F7CFF','#19A66A','#E3A008','#9B5DE5','#8A9099'];const donut=$('paymentDonut');const legend=$('paymentLegend');legend.innerHTML='';if(!total){donut.style.background='var(--line)';donut.setAttribute('aria-label','No payments today');legend.innerHTML='<div class="insight-empty">No payments today</div>';return}let cursor=0;const segments=entries.map((entry,index)=>{const start=cursor;cursor+=(entry[1]/total)*100;return `${colours[index%colours.length]} ${start}% ${cursor}%`});donut.style.background=`conic-gradient(${segments.join(',')})`;donut.setAttribute('aria-label',entries.map(x=>x[0]+' '+x[1]).join(', '));entries.forEach((entry,index)=>{const row=document.createElement('div');row.className='legend-item';const dot=document.createElement('span');dot.className='legend-dot';dot.style.background=colours[index%colours.length];const label=document.createElement('span');label.textContent=entry[0].replace(/\b\w/g,c=>c.toUpperCase());const value=document.createElement('strong');value.textContent=entry[1];row.append(dot,label,value);legend.appendChild(row)})}
+function addBar(container,label,value,detail,percentage,className=''){const row=document.createElement('div');const head=document.createElement('div');head.className='bar-row-head';const name=document.createElement('span');name.textContent=label;const amount=document.createElement('strong');amount.textContent=detail;head.append(name,amount);const track=document.createElement('div');track.className='track';const fill=document.createElement('div');fill.className='track-fill '+className;fill.style.width=Math.max(0,Math.min(100,percentage))+'%';track.appendChild(fill);row.append(head,track);container.appendChild(row)}
+function renderCurrencyActivity(sales){const values={USD:{count:0,total:0},ZiG:{count:0,total:0}};(sales||[]).forEach(s=>{const currency=s.currency==='ZiG'?'ZiG':'USD';values[currency].count++;values[currency].total+=Number(s.total||0)});const maximum=Math.max(1,values.USD.count,values.ZiG.count);const container=$('currencyBars');container.innerHTML='';addBar(container,'USD',values.USD.count,money(values.USD.total,'USD'),values.USD.count/maximum*100);addBar(container,'ZiG',values.ZiG.count,money(values.ZiG.total,'ZiG'),values.ZiG.count/maximum*100,'blue')}
+function renderStockHealth(items){const products=(items||[]).filter(i=>i.kind==='product'&&i.is_active);const total=products.length;const out=products.filter(i=>Number(i.stock_quantity||0)<=0).length;const low=products.filter(i=>Number(i.stock_quantity||0)>0&&Number(i.stock_quantity||0)<=Number(i.reorder_level||0)).length;const healthy=Math.max(0,total-low-out);const denominator=Math.max(1,total);const container=$('stockBars');container.innerHTML='';addBar(container,'Healthy',healthy,healthy+' item(s)',healthy/denominator*100,'green');addBar(container,'Low',low,low+' item(s)',low/denominator*100,'amber');addBar(container,'Out',out,out+' item(s)',out/denominator*100,'muted-fill')}
+function renderRealtimeInfographics(pulseSales,todaySales,payments,catalog){renderSalesPulse(pulseSales);renderPaymentMix(payments);renderCurrencyActivity(todaySales);renderStockHealth(catalog);$('insightUpdated').textContent='Updated '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}
+async function loadDashboard(){const from=new Date();from.setHours(0,0,0,0);const pulseFrom=new Date(Date.now()-12*60*60*1000);const [summaryResult,recentResult,todayResult,pulseResult,catalogResult]=await Promise.all([supabase.rpc('get_dashboard_summary',{p_from:from.toISOString()}),supabase.from('sales').select('receipt_number,till_code,currency,total,change_owed,status,client_created_at').order('client_created_at',{ascending:false}).limit(30),supabase.from('sales').select('id,currency,total,status,client_created_at').gte('client_created_at',from.toISOString()).order('client_created_at',{ascending:true}).limit(1000),supabase.from('sales').select('client_created_at').gte('client_created_at',pulseFrom.toISOString()).order('client_created_at',{ascending:true}).limit(1000),supabase.from('catalog_items').select('kind,stock_quantity,reorder_level,is_active').eq('is_active',true)]);const {data,error}=summaryResult;if(!error&&data){$('salesTotal').textContent=currencyMap(data.net_sales_by_currency);$('transactions').textContent=data.transactions||0;$('outstanding').textContent=currencyMap(data.outstanding_change_by_currency);$('lowStock').textContent=data.low_stock_count||0}else if(error){$('salesTotal').textContent='Restricted'}$('salesRows').innerHTML='';(recentResult.data||[]).forEach(s=>{const tr=document.createElement('tr');[s.receipt_number,s.till_code,s.currency,money(s.total,s.currency),money(s.change_owed,s.currency),s.status,new Date(s.client_created_at).toLocaleString()].forEach(v=>tr.appendChild(td(v)));$('salesRows').appendChild(tr)});const todaySales=todayResult.data||[];let payments=[];if(todaySales.length){const paymentResult=await supabase.from('payments').select('method,sale_id').in('sale_id',todaySales.map(s=>s.id));payments=paymentResult.data||[]}renderRealtimeInfographics(pulseResult.data||[],todaySales,payments,catalogResult.data||[])}
 async function loadCatalog(){const {data,error}=await supabase.from('catalog_items').select('id,name,kind,selling_price,selling_price_zig,purchase_price,stock_quantity,reorder_level,is_active').order('name');if(error)return status('catalogStatus',error.message,'error');$('catalogRows').innerHTML='';(data||[]).forEach(i=>{const tr=document.createElement('tr');tr.appendChild(td(i.name));const type=td('');const span=document.createElement('span');span.className='pill '+i.kind;span.textContent=i.kind;type.appendChild(span);tr.appendChild(type);tr.appendChild(td(money(i.selling_price,'USD')));tr.appendChild(td(i.selling_price_zig==null?'Not set':money(i.selling_price_zig,'ZiG')));tr.appendChild(td(i.stock_quantity));tr.appendChild(td(i.reorder_level));const action=td('');if(i.kind==='product'&&['manager','administrator'].includes(profile.role)){const b=document.createElement('button');b.className='btn ghost small';b.textContent='Adjust stock';b.onclick=()=>adjustStock(i);action.appendChild(b)}tr.appendChild(action);$('catalogRows').appendChild(tr)})}
 $('catalogForm').onsubmit=async e=>{e.preventDefault();const kind=$('itemKind').value;const row={branch_id:profile.branch_id,kind,name:$('itemName').value.trim(),selling_price:Number($('itemPrice').value),selling_price_zig:$('itemPriceZig').value===''?null:Number($('itemPriceZig').value),purchase_price:$('itemPurchase').value===''?null:Number($('itemPurchase').value),sku:$('itemSku').value.trim()||null,barcode:$('itemBarcode').value.trim()||null,stock_quantity:kind==='product'&&$('itemStock').value!==''?Number($('itemStock').value):null,reorder_level:kind==='product'&&$('itemReorder').value!==''?Number($('itemReorder').value):null,is_active:true};const {error}=await supabase.from('catalog_items').insert(row);if(error)return status('catalogStatus',error.message,'error');status('catalogStatus','Item saved.','ok');e.target.reset();await loadCatalog()};
 async function functionCall(name,method='POST',body){const {data:{session}}=await supabase.auth.getSession();const res=await fetch(SUPABASE_URL+'/functions/v1/'+name,{method,headers:{Authorization:'Bearer '+session.access_token,apikey:SUPABASE_KEY,'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});const data=await res.json();if(!res.ok)throw new Error(data.error||'Request failed');return data}
@@ -789,7 +990,7 @@ async function loadHealth(){const {data,error}=await supabase.rpc('get_v1_system
 const loaders={dashboard:loadDashboard,transactions:loadTransactions,shifts:loadShifts,reports:loadReport,operations:loadOperations,audit:loadAudit,health:loadHealth,catalog:loadCatalog,customers:loadCustomers,suppliers:loadSuppliers,change:loadChange,users:loadUsers,devices:loadDevices,receipts:loadReceiptSettings};const titles={dashboard:'Dashboard',transactions:'Transactions',shifts:'Till Shifts',reports:'Reports',operations:'Voids & Refunds',audit:'Audit Trail',health:'System Health',catalog:'Products & Services',customers:'Customers',suppliers:'Suppliers',change:'Outstanding Change',users:'Users',devices:'Devices',receipts:'Receipt Settings'};
 function page(name){Object.keys(loaders).forEach(p=>$(p+'Page').classList.toggle('hidden',p!==name));document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===name));$('pageTitle').textContent=titles[name];loaders[name]()}
 document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>page(b.dataset.page));$('refreshDashboard').onclick=loadDashboard;$('refreshTransactions').onclick=loadTransactions;$('refreshShifts').onclick=loadShifts;$('runReport').onclick=loadReport;$('exportReport').onclick=exportReportCsv;$('refreshOperations').onclick=loadOperations;$('refreshAudit').onclick=loadAudit;$('refreshHealth').onclick=loadHealth;$('refreshCatalog').onclick=loadCatalog;$('refreshCustomers').onclick=loadCustomers;$('refreshSuppliers').onclick=loadSuppliers;$('refreshChange').onclick=loadChange;$('refreshUsers').onclick=loadUsers;$('refreshDevices').onclick=loadDevices;$('logoutBtn').onclick=async()=>{await supabase.auth.signOut();location.reload()};
-function startRealtime(){let refreshTimer=null;const refresh=()=>{clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{await loadDashboard();const active=document.querySelector('[data-page].active')?.dataset.page;if(active==='transactions')await loadTransactions();if(active==='shifts')await loadShifts();if(active==='operations')await loadOperations();if(active==='health')await loadHealth();if(active==='catalog')await loadCatalog();if(active==='change')await loadChange()}catch(_error){}},350)};supabase.channel('omnihub-v1-live').on('postgres_changes',{event:'*',schema:'public',table:'sales'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'catalog_items'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'till_shifts'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'operation_requests'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'change_settlements'},refresh).subscribe()}
+function startRealtime(){let refreshTimer=null;const refresh=()=>{clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{await loadDashboard();const active=document.querySelector('[data-page].active')?.dataset.page;if(active==='transactions')await loadTransactions();if(active==='shifts')await loadShifts();if(active==='operations')await loadOperations();if(active==='health')await loadHealth();if(active==='catalog')await loadCatalog();if(active==='change')await loadChange()}catch(_error){}},350)};supabase.channel('omnihub-v1-live').on('postgres_changes',{event:'*',schema:'public',table:'sales'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'catalog_items'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'till_shifts'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'operation_requests'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'change_settlements'},refresh).subscribe(state=>{const badge=$('liveBadge');if(!badge)return;const connected=state==='SUBSCRIBED';badge.textContent=connected?'LIVE':state==='CHANNEL_ERROR'?'RETRYING':'CONNECTING';badge.classList.toggle('offline',!connected)})}
 const today=new Date().toISOString().slice(0,10);$('reportFrom').value=today;$('reportTo').value=today;const {data:{session}}=await supabase.auth.getSession();if(session){await showApp();startRealtime()}
 </script>
 </body>
