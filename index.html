@@ -842,7 +842,7 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
 </section>
 
 <section id="app" class="app hidden">
-  <aside class="sidebar"><div class="sidebar-logo"><img id="sidebarLogo" alt="OmniHub Solutions logo"><span>OMNIHUB POS v1.4.2</span></div><div class="nav">
+  <aside class="sidebar"><div class="sidebar-logo"><img id="sidebarLogo" alt="OmniHub Solutions logo"><span>OMNIHUB POS v1.4.3</span></div><div class="nav">
     <button data-page="dashboard" class="active">Dashboard</button>
     <button data-page="transactions">Transactions</button>
     <button data-page="shifts" data-roles="supervisor,manager,administrator,auditor">Till Shifts</button>
@@ -987,7 +987,7 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL='https://sutdhmqwrxeumrarctoc.supabase.co';
 const SUPABASE_KEY='sb_publishable_Cfx2QV12ThP50sXrmFrWsw_PNlmNVei';
 const supabase=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
-let profile=null;const $=id=>document.getElementById(id);const money=(v,c='USD')=>c+' '+Number(v||0).toFixed(2);const currencyMap=(values)=>['USD','ZiG'].map(c=>money(values?.[c]||0,c)).join(' · ');const td=(v)=>{const e=document.createElement('td');e.textContent=v==null?'—':String(v);return e};
+let profile=null;window.OmniHubCRMContext={supabase,getProfile:()=>profile};const $=id=>document.getElementById(id);const money=(v,c='USD')=>c+' '+Number(v||0).toFixed(2);const currencyMap=(values)=>['USD','ZiG'].map(c=>money(values?.[c]||0,c)).join(' · ');const td=(v)=>{const e=document.createElement('td');e.textContent=v==null?'—':String(v);return e};
 function status(id,msg,type=''){const e=$(id);e.textContent=msg;e.className='status '+type;e.classList.remove('hidden')}function hideStatus(id){$(id).classList.add('hidden')}
 function switchAuth(mode){['login','setup','reset'].forEach(x=>{$(x+'Tab').classList.toggle('active',x===mode);$(x+'Form').classList.toggle('hidden',x!==mode)});$('newPasswordForm').classList.add('hidden');hideStatus('authStatus')}
 $('loginTab').onclick=()=>switchAuth('login');$('setupTab').onclick=()=>switchAuth('setup');$('resetTab').onclick=()=>switchAuth('reset');
@@ -1090,6 +1090,7 @@ document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>page(b.dataset
 function startRealtime(){let refreshTimer=null;const refresh=()=>{clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{await loadDashboard();const active=document.querySelector('[data-page].active')?.dataset.page;if(active==='transactions')await loadTransactions();if(active==='shifts')await loadShifts();if(active==='operations')await loadOperations();if(active==='health')await loadHealth();if(active==='catalog')await loadCatalog();if(active==='change')await loadChange();if(active==='finance')await loadFinance();if(active==='suite')await Promise.all([loadSuiteDashboard(),loadSuiteRecords()])}catch(_error){}},350)};let channel=supabase.channel('omnihub-v1-live').on('postgres_changes',{event:'*',schema:'public',table:'sales'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'sale_lines'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'expenses'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'catalog_items'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'till_shifts'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'operation_requests'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'change_settlements'},refresh);['business_documents','production_jobs','management_approvals','notifications'].forEach(table=>{channel=channel.on('postgres_changes',{event:'*',schema:'public',table},refresh)});channel.subscribe(state=>{const badge=$('liveBadge');if(!badge)return;const connected=state==='SUBSCRIBED';badge.textContent=connected?'LIVE':state==='CHANNEL_ERROR'?'RETRYING':'CONNECTING';badge.classList.toggle('offline',!connected)})}
 const today=portalLocalDate();$('reportFrom').value=today;$('reportTo').value=today;$('financeAnchor').value=today;$('financeExpenseDate').value=today;const {data:{session}}=await supabase.auth.getSession();if(session){await showApp();startRealtime();if(location.hash==='#suite'&&['manager','administrator','auditor'].includes(profile?.role))page('suite');if(location.hash==='#finance'&&['manager','administrator','auditor'].includes(profile?.role))page('finance')}
 </script>
+<script src="crm-module.js"></script>
 </body>
 </html>
 
