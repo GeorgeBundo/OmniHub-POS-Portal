@@ -26,5 +26,7 @@ for(const marker of [
   "WRITE=['administrator','manager']",
   'Auditor access is read-only.'
 ])if(!crm.includes(marker))throw new Error('Missing CRM control: '+marker);
+const crmTag=html.lastIndexOf('<script src="crm-module.js">');
+if(crmTag < html.lastIndexOf('</script>',crmTag-1))throw new Error('The CRM module tag is inside an application script.');
 if(/service_role|sb_secret_/i.test(html+crm))throw new Error('A secret Supabase credential was found in the browser release.');
 console.log('Validated portal v1.4.3 with '+ids.length+' unique UI IDs and all CRM/lead/cash-cycle boundaries.');
