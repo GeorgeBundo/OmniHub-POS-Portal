@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#111214">
+<title>Order Online · OmniHub Solutions</title>
+<style>
+:root{font-family:Montserrat,Arial,sans-serif;color:#17181b;background:#f4f5f7;--red:#e52421;--black:#111214;--line:#dfe3e8;--muted:#68707d}
+*{box-sizing:border-box}body{margin:0}.top{background:#111214;color:#fff;padding:20px}.top div{max-width:1060px;margin:auto}.top h1{margin:0;font-size:24px}.top p{margin:7px 0 0;color:#d6d8dc}.wrap{max-width:1060px;margin:24px auto;padding:0 16px 60px}.tabs{display:flex;gap:8px;margin-bottom:16px}.tabs button{border:1px solid var(--line);background:#fff;padding:11px 15px;border-radius:10px;font-weight:700;cursor:pointer}.tabs button.active{background:var(--red);border-color:var(--red);color:#fff}.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 5px 18px rgba(0,0,0,.05)}.panel h2{margin:0 0 14px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}label{font-size:12px;font-weight:700;color:#34383f}input,select,textarea{width:100%;border:1px solid #cfd4da;border-radius:10px;padding:12px;font:inherit}textarea{min-height:90px;resize:vertical}.line{display:grid;grid-template-columns:1fr 110px 46px;gap:8px;align-items:end;margin-bottom:10px}.btn{border:0;border-radius:10px;padding:12px 15px;font-weight:800;cursor:pointer}.btn:disabled{opacity:.55;cursor:not-allowed}.primary{background:var(--red);color:#fff}.secondary{background:#17181b;color:#fff}.ghost{background:#eef0f3}.danger{background:#feeceb;color:#9b1c1c}.status{padding:12px;border-radius:10px;background:#eef0f3;margin-top:12px;white-space:pre-wrap}.ok{background:#e9f8ef;color:#12663f}.error{background:#feeceb;color:#9b1c1c}.hidden{display:none!important}.receipt{display:grid;gap:8px}.code{font-family:ui-monospace,Consolas,monospace;font-size:17px;font-weight:800;background:#f2f3f5;padding:10px;border-radius:8px;overflow-wrap:anywhere}.timeline{display:grid;gap:10px}.event{border-left:4px solid var(--red);padding:8px 12px;background:#f7f8fa;border-radius:8px}.event strong{display:block;text-transform:capitalize}.small{font-size:12px;color:var(--muted)}.doc-card{border:1px solid var(--line);border-radius:12px;padding:12px;margin:10px 0;background:#fafbfc}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}@media(max-width:650px){.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.line{grid-template-columns:1fr 80px 42px}}
+</style>
+</head>
+<body>
+<header class="top"><div><h1>OmniHub Solutions</h1><p>Request a quotation, place a product or service order, upload artwork, and track production.</p></div></header>
+<main class="wrap">
+<div class="tabs"><button id="orderTab" class="active">New order</button><button id="trackTab">Track order</button></div>
+<section id="orderView">
+  <form id="orderForm">
+    <div class="panel"><h2>Contact details</h2><div class="grid">
+      <div class="field"><label>Name *</label><input id="contactName" required maxlength="160"></div>
+      <div class="field"><label>Phone / WhatsApp *</label><input id="phone" required maxlength="80"></div>
+      <div class="field"><label>Email</label><input id="email" type="email" maxlength="200"></div>
+      <div class="field"><label>Company / organisation</label><input id="companyName" maxlength="200"></div>
+    </div></div>
+    <div class="panel"><h2>Order details</h2><div class="grid">
+      <div class="field"><label>Currency</label><select id="currency"><option>USD</option><option>ZiG</option></select></div>
+      <div class="field"><label>Fulfilment</label><select id="fulfillment"><option value="collection">Collect from OmniHub</option><option value="delivery">Delivery</option></select></div>
+      <div id="deliveryField" class="field full hidden"><label>Delivery address *</label><input id="deliveryAddress" maxlength="500"></div>
+      <div class="field"><label>Requested date</label><input id="requestedDate" type="date"></div>
+      <div class="field full"><label>Notes / specifications</label><textarea id="notes" maxlength="2000" placeholder="Sizes, colours, finishing, branding instructions, deadlines or other details"></textarea></div>
+    </div></div>
+    <div class="panel"><h2>Products / services</h2><div id="lines"></div><button id="addLine" class="btn ghost" type="button">+ Add another item</button></div>
+    <div class="panel"><h2>Artwork & documents</h2><p class="small">PDF, JPEG, PNG, TIFF or SVG. Maximum 10 MB per file. Files are stored privately against your order.</p><input id="artworkFiles" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.tif,.tiff,.svg,application/pdf,image/jpeg,image/png,image/tiff,image/svg+xml"><div id="uploadStatus" class="small" style="margin-top:8px"></div></div>
+    <button id="submitOrder" class="btn primary" type="submit">Submit order request</button><div id="orderStatus" class="status hidden"></div>
+  </form>
+  <div id="orderSuccess" class="panel hidden"><h2>Order received</h2><div class="receipt"><span>Order number</span><div id="savedOrderNumber" class="code"></div><span>Tracking code</span><div id="savedTracking" class="code"></div><span>Private access token</span><div id="savedToken" class="code"></div><div id="savedUploadStatus" class="status hidden"></div><button id="retryUploads" class="btn ghost hidden" type="button">Retry failed file uploads</button><p class="small">Save both the tracking code and private token. The token is not displayed again after you leave this page.</p><button id="trackNewOrder" class="btn secondary" type="button">Track this order</button></div></div>
+</section>
+<section id="trackView" class="hidden">
+  <div class="panel"><h2>Track an order</h2><div class="grid"><div class="field"><label>Tracking code</label><input id="trackingCode"></div><div class="field"><label>Private access token</label><input id="accessToken"></div></div><button id="trackOrder" class="btn primary" type="button" style="margin-top:12px">Check status</button><div id="trackStatus" class="status hidden"></div></div>
+  <div id="trackingResult" class="panel hidden"><h2 id="trackingTitle"></h2><div id="trackingSummary"></div><h3>Progress</h3><div id="timeline" class="timeline"></div></div>
+</section>
+</main>
+<script src="order-v21.js"></script>
+</body></html>

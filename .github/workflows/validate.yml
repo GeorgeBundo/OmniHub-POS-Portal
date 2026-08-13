@@ -6,6 +6,8 @@ on:
     paths:
       - "index.html"
       - "crm-module.js"
+      - "order.html"
+      - "order-v21.js"
       - "tests/**"
       - ".github/workflows/validate.yml"
   pull_request:
@@ -13,6 +15,8 @@ on:
     paths:
       - "index.html"
       - "crm-module.js"
+      - "order.html"
+      - "order-v21.js"
       - "tests/**"
       - ".github/workflows/validate.yml"
   workflow_dispatch:
@@ -28,4 +32,9 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: "24"
-      - run: node tests/validate.mjs
+      - name: Validate management portal
+        run: node tests/validate.mjs
+      - name: Syntax-check customer ordering client
+        run: node --check order-v21.js
+      - name: Verify ordering page loads the completed client
+        run: grep -Fq '<script src="order-v21.js"></script>' order.html
