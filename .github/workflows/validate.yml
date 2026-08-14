@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "index.html"
+      - "quotation-pdf.js"
       - "crm-module.js"
       - "order.html"
       - "order-v21.js"
@@ -14,6 +15,7 @@ on:
     branches: [main]
     paths:
       - "index.html"
+      - "quotation-pdf.js"
       - "crm-module.js"
       - "order.html"
       - "order-v21.js"
@@ -34,6 +36,14 @@ jobs:
           node-version: "24"
       - name: Validate management portal
         run: node tests/validate.mjs
+      - name: Syntax-check quotation PDF generator
+        run: node --check quotation-pdf.js
+      - name: Verify quotation create and download workflow
+        run: |
+          grep -Fq 'save_business_document' index.html
+          grep -Fq 'Create &amp; download PDF' index.html
+          grep -Fq 'OmniHubQuotationPdf.createBytes' index.html
+          grep -Fq '<script src="quotation-pdf.js"></script>' index.html
       - name: Syntax-check customer ordering client
         run: node --check order-v21.js
       - name: Verify ordering page loads the completed client
