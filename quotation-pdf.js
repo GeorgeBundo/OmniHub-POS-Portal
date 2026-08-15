@@ -223,21 +223,48 @@
     return jpegPdf(canvas.toDataURL('image/jpeg', 0.96), width, height);
   }
 
-  function download(fileName, bytes) {
+  async function download(fileName, bytes) {
     if (!(bytes instanceof Uint8Array) || String.fromCharCode(...bytes.slice(0, 5)) !== '%PDF-') {
       throw new Error('Quotation generation did not produce a valid PDF.');
     }
+
+    const safeName = String(fileName || 'OmniHub-Quotation.pdf').toLowerCase().endsWith('.pdf')
+      ? fileName
+      : `${fileName}.pdf`;
     const blob = new Blob([bytes], { type: 'application/pdf' });
     const url = URL.createObjectURL(blob);
+    const mobile = isMobileBrowser();
+    const revoke = () => URL.revokeObjectURL(url);
+
+    if (mobile && typeof File !== 'undefined' && navigator.canShare && navigator.share) {
+      const file = new File([blob], safeName, { type: 'application/pdf' });
+      if (navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: safeName.replace(/\\.pdf$/i, ''),
+            text: 'OmniHub quotation PDF'
+          });
+          setTimeout(revoke, 60 * 1000);
+          return { fileName: safeName, url: null, revoke, mobile, shared: true };
+        } catch (error) {
+          if (error?.name !== 'AbortError') throw error;
+        }
+      }
+    }
+
     const link = document.createElement('a');
     link.href = url;
-    link.download = String(fileName || 'OmniHub-Quotation.pdf').toLowerCase().endsWith('.pdf') ? fileName : `${fileName}.pdf`;
+    link.download = safeName;
+    link.target = '_blank';
+    link.rel = 'noopener';
+    link.setAttribute('aria-label', `Download ${safeName}`);
     document.body.appendChild(link);
-    link.click();
+    if (!mobile) link.click();
     link.remove();
-    const revoke = () => URL.revokeObjectURL(url);
-    setTimeout(revoke, 10 * 60 * 1000);
-    return { fileName: link.download, url, revoke };
+
+    setTimeout(revoke, mobile ? 30 * 60 * 1000 : 10 * 60 * 1000);
+    return { fileName: safeName, url, revoke, mobile, shared: false };
   }
 
   global.OmniHubQuotationPdf = { createBytes, download };
