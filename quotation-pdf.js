@@ -235,8 +235,9 @@
     document.body.appendChild(link);
     link.click();
     link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 3000);
-    return link.download;
+    const revoke = () => URL.revokeObjectURL(url);
+    setTimeout(revoke, 10 * 60 * 1000);
+    return { fileName: link.download, url, revoke };
   }
 
   global.OmniHubQuotationPdf = { createBytes, download };
