@@ -10,13 +10,27 @@ function money(value,currency){return `${currency} ${Number(value||0).toFixed(2)
 function escapeHtml(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 
 async function rpc(name,args){
-  const response=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{
+  const operation={
+    create_customer_order_request:'create',
+    get_customer_order_status:'status',
+    respond_customer_order_quote:'quote-response'
+  }[name];
+  if(!operation)throw new Error('Unsupported customer order operation.');
+  const response=await fetch(`${SUPABASE_URL}/functions/v1/customer-order-public`,{
     method:'POST',
-    headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY,'Authorization':`Bearer ${SUPABASE_KEY}`},
-    body:JSON.stringify(args)
+    headers:{'Content-Type':'application/json','apikey':SUPABASE_KEY},
+    body:JSON.stringify({operation,payload:args})
   });
   const data=await response.json().catch(()=>null);
-  if(!response.ok) throw new Error(data?.message||data?.error_description||`Request failed (${response.status})`);
+  if(!response.ok){
+    const messages={
+      invalid_request:'Check the supplied order details.',
+      order_not_found_or_token_invalid:'The tracking code or access token is incorrect.',
+      rate_limit_exceeded:'Too many requests. Wait one minute and try again.',
+      service_unavailable:'Order services are temporarily unavailable.'
+    };
+    throw new Error(messages[data?.error]||`Request failed (${response.status})`);
+  }
   return data;
 }
 
