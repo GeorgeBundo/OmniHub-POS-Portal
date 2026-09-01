@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 
+const order=fs.readFileSync(new URL('../order.js',import.meta.url),'utf8');
 const html=fs.readFileSync('index.html','utf8');
 const crm=fs.readFileSync('crm-module.js','utf8');
 const quotationPdf=fs.readFileSync('quotation-pdf.js','utf8');
@@ -8,7 +9,9 @@ new vm.Script(crm,{filename:'crm-module.js'});
 new vm.Script(quotationPdf,{filename:'quotation-pdf.js'});
 
 const checks=[
-  [html.includes('OmniHub Solutions Portal v1.4.5'),'portal release version'],
+  [order.includes('/functions/v1/customer-order-public'),'customer orders use protected Edge gateway'],
+  [!order.includes('/rest/v1/rpc/'),'customer orders do not call privileged RPCs directly'],
+  [html.includes('OmniHub Solutions Portal v2.5.0'),'portal release version'],
   [html.includes('OmniHubCRMContext')&&html.includes('src="crm-module.js"'),'CRM host integration'],
   [crm.includes('Customers &amp; CRM')&&crm.includes('Leads &amp; Conversions'),'CRM and lead workspaces'],
   [crm.includes('get_customer_360')&&crm.includes('transition_crm_lead'),'Customer 360 and conversion RPCs'],
