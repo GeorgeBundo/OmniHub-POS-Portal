@@ -77,7 +77,7 @@
     if($('crmCustomersWorkspace'))return;
     const style=document.createElement('style');style.textContent=STYLE;document.head.appendChild(style);
     const host=document.querySelector('main.content')||document.querySelector('.main');if(!host)throw new Error('OmniHub content host was not found.');
-    host.insertAdjacentHTML('beforeend',customerHTML()+leadHTML()+cashHTML());nav();bind();role();
+    const template=document.createElement('template');template.innerHTML=customerHTML()+leadHTML()+cashHTML();host.appendChild(template.content.cloneNode(true));nav();bind();role();
   }
   function nav(){
     const bottom=document.querySelector('.bottom-nav'), items=[['crmCustomersWorkspace','♙','CRM'],['crmLeadsWorkspace','↗','Leads'],['crmCashWorkspace','◈','Cash Cycle']];

@@ -992,10 +992,10 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
 
 <script src="quotation-pdf.js"></script>
 <script type="module">
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { createClient } from './vendor/supabase.js';
 const SUPABASE_URL='https://sutdhmqwrxeumrarctoc.supabase.co';
 const SUPABASE_KEY='sb_publishable_Cfx2QV12ThP50sXrmFrWsw_PNlmNVei';
-const supabase=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const supabase=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:true}});
 let profile=null;window.OmniHubCRMContext={supabase:()=>supabase,getProfile:()=>profile};const $=id=>document.getElementById(id);const money=(v,c='USD')=>c+' '+Number(v||0).toFixed(2);const currencyMap=(values)=>['USD','ZiG'].map(c=>money(values?.[c]||0,c)).join(' · ');const td=(v)=>{const e=document.createElement('td');e.textContent=v==null?'—':String(v);return e};const fillSelect=(id,rows,label,includeBlank=false,blankLabel='Select')=>{const select=$(id);select.replaceChildren();if(includeBlank)select.add(new Option(blankLabel,''));rows.forEach(row=>select.add(new Option(label(row),row.id)))};
 
 function status(id,msg,type=''){const e=$(id);e.textContent=msg;e.className='status '+type;e.classList.remove('hidden')}function hideStatus(id){$(id).classList.add('hidden')}
