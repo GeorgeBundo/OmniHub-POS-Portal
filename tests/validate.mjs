@@ -11,7 +11,7 @@ new vm.Script(quotationPdf,{filename:'quotation-pdf.js'});
 const checks=[
   [order.includes('/functions/v1/customer-order-public'),'customer orders use protected Edge gateway'],
   [!order.includes('/rest/v1/rpc/'),'customer orders do not call privileged RPCs directly'],
-  [html.includes('OmniHub Solutions Portal v2.5.0'),'portal release version'],
+  [html.includes('OmniHub Solutions Portal v2.6.0'),'portal release version'],
   [html.includes('OmniHubCRMContext')&&html.includes('src="crm-module.js"'),'CRM host integration'],
   [crm.includes('Customers &amp; CRM')&&crm.includes('Leads &amp; Conversions'),'CRM and lead workspaces'],
   [crm.includes('get_customer_360')&&crm.includes('transition_crm_lead'),'Customer 360 and conversion RPCs'],
@@ -22,6 +22,10 @@ const checks=[
   [html.includes('Create &amp; download PDF')&&html.includes('downloadSuiteQuotation'),'quotation download controls'],
   [quotationPdf.includes('%PDF-1.4')&&quotationPdf.includes('application/pdf'),'real PDF byte generator'],
   [html.includes('Download PDF now')&&quotationPdf.includes('10 * 60 * 1000'),'persistent direct PDF fallback'],
+  [html.includes("fillSelect('bundleItem'")&&html.includes("fillSelect('outSupplier'"),'safe database option rendering'],
+  [html.includes('ensurePortalSession')&&html.includes('loginEventRows'),'resilient session and login monitoring'],
+  [html.includes('customerPricingTier')&&html.includes('pricing_tier'),'customer trade pricing controls'],
+  [html.includes('invalid_outsourced_job_status_transition')===false&&html.includes('status_note'),'outsourced status-note workflow'],
 ];
 for(const [ok,label] of checks)if(!ok)throw new Error('Validation failed: '+label);
 
