@@ -5,6 +5,19 @@ const order=fs.readFileSync(new URL('../order.js',import.meta.url),'utf8');
 const html=fs.readFileSync('index.html','utf8');
 const crm=fs.readFileSync('crm-module.js','utf8');
 const quotationPdf=fs.readFileSync('quotation-pdf.js','utf8');
+const vendor=fs.readFileSync('vendor/supabase.js','utf8');
+
+const localDependencies=[
+  ...[...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)].map(x=>x[1]),
+  ...[...html.matchAll(/\bfrom\s+["'](\.[^"']+)["']/g)].map(x=>x[1]),
+];
+for(const reference of localDependencies){
+  if(/^(?:https?:)?\/\//i.test(reference))continue;
+  const path=reference.split(/[?#]/,1)[0].replace(/^\.\//,'');
+  if(!fs.existsSync(path))throw new Error('Missing local browser dependency: '+reference);
+}
+
+new vm.Script(vendor,{filename:'vendor/supabase.js'});
 new vm.Script(crm,{filename:'crm-module.js'});
 new vm.Script(quotationPdf,{filename:'quotation-pdf.js'});
 
@@ -12,6 +25,8 @@ const checks=[
   [order.includes('/functions/v1/customer-order-public'),'customer orders use protected Edge gateway'],
   [!order.includes('/rest/v1/rpc/'),'customer orders do not call privileged RPCs directly'],
   [html.includes('OmniHub Solutions Portal v2.6.0'),'portal release version'],
+  [html.includes('src="./vendor/supabase.js"')&&html.includes('window.supabase||{}')&&!html.includes("from './vendor/supabase.js'"),'local Supabase browser bootstrap'],
+  [vendor.startsWith('var supabase=')&&vendor.includes('createClient'),'vendored Supabase UMD contract'],
   [html.includes('OmniHubCRMContext')&&html.includes('src="crm-module.js"'),'CRM host integration'],
   [crm.includes('Customers &amp; CRM')&&crm.includes('Leads &amp; Conversions'),'CRM and lead workspaces'],
   [crm.includes('get_customer_360')&&crm.includes('transition_crm_lead'),'Customer 360 and conversion RPCs'],

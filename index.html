@@ -991,8 +991,10 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
 </script>
 
 <script src="quotation-pdf.js"></script>
+<script src="./vendor/supabase.js"></script>
 <script type="module">
-import { createClient } from './vendor/supabase.js';
+const {createClient}=window.supabase||{};
+if(typeof createClient!=='function')throw new Error('Supabase client failed to load');
 const SUPABASE_URL='https://sutdhmqwrxeumrarctoc.supabase.co';
 const SUPABASE_KEY='sb_publishable_Cfx2QV12ThP50sXrmFrWsw_PNlmNVei';
 const supabase=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:true}});
