@@ -314,6 +314,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .nav button[data-page="suite"]::before{content:"◆"}
 .nav button[data-page="users"]::before{content:"♟"}
 .nav button[data-page="devices"]::before{content:"▤"}
+.nav button[data-page="controls"]::before{content:"⚙"}
 .nav button[data-page="receipts"]::before{content:"▧"}
 .nav button#logoutBtn{
   margin-top:15px;
@@ -843,7 +844,7 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
 </section>
 
 <section id="app" class="app hidden">
-  <aside class="sidebar"><div class="sidebar-logo"><img id="sidebarLogo" alt="OmniHub Solutions logo"><span>OMNIHUB POS v1.4.5</span></div><div class="nav">
+  <aside class="sidebar"><div class="sidebar-logo"><img id="sidebarLogo" alt="OmniHub Solutions logo"><span>OMNIHUB POS v2.7.0</span></div><div class="nav">
     <button data-page="dashboard" class="active">Dashboard</button>
     <button data-page="transactions">Transactions</button>
     <button data-page="shifts" data-roles="supervisor,manager,administrator,auditor">Till Shifts</button>
@@ -861,6 +862,7 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
     <button data-page="suite" data-roles="manager,administrator,auditor">Business Suite</button>
     <button data-page="users" data-roles="administrator">Users</button>
     <button data-page="devices" data-roles="administrator">Devices</button>
+    <button data-page="controls" data-roles="manager,administrator">Sales &amp; Reset Controls</button>
     <button data-page="receipts" data-roles="manager,administrator">Receipt Settings</button>
     <button id="logoutBtn">Sign out</button>
   </div></aside>
@@ -942,7 +944,42 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
 
     <section id="devicesPage" class="hidden"><div class="panel"><div class="panel-head"><h3>Registered tills and devices</h3><button class="btn ghost" id="refreshDevices">Refresh</button></div><div id="deviceStatus" class="status hidden"></div><div class="table-wrap"><table><thead><tr><th>Till</th><th>Computer</th><th>Version</th><th>Registered</th><th>Last seen</th><th>Status</th><th>Action</th></tr></thead><tbody id="deviceRows"></tbody></table></div></div></section>
 
-    <section id="receiptsPage" class="hidden"><div class="panel"><div class="panel-head"><h3>Receipt and printer settings</h3></div><form id="receiptForm" class="form-grid"><div class="field"><label>Business name</label><input id="receiptBusiness" required></div><div class="field"><label>Receipt title</label><input id="receiptTitle" required></div><div class="field"><label>Address line 1</label><input id="receiptAddress1" required></div><div class="field"><label>Address line 2</label><input id="receiptAddress2" required></div><div class="field"><label>Phone 1</label><input id="receiptPhone1" required></div><div class="field"><label>Phone 2</label><input id="receiptPhone2"></div><div class="field"><label>Thermal width</label><select id="receiptWidth"><option value="58">58mm</option><option value="80">80mm</option></select></div><div class="field"><label>Preferred thermal printer</label><input id="receiptPrinter"></div><div class="field"><label>Thank-you message</label><input id="receiptThanks"></div><div class="field"><label>Custom footer</label><input id="receiptFooter"></div><div class="field"><label><input id="receiptAutoPrint" type="checkbox" style="width:auto"> Automatically print after sale</label></div><div class="field"><label><input id="receiptPrintLogo" type="checkbox" style="width:auto"> Print monochrome logo</label></div><div class="full"><button class="btn primary" type="submit">Save receipt settings</button></div></form><div id="receiptStatus" class="status hidden"></div></div></section>
+    <section id="controlsPage" class="hidden">
+      <div class="grid two">
+        <div class="panel">
+          <div class="panel-head"><div><h3>Record a management sale</h3><div class="muted">Add a previous-day sale or a custom-price sale. Every entry is attributed and audited.</div></div></div>
+          <form id="managementSaleForm" class="form-grid">
+            <div class="field full"><label>Catalogue item (optional)</label><select id="managementSaleCatalog"><option value="">Custom line / service</option></select></div>
+            <div class="field full"><label>Description</label><input id="managementSaleDescription" required maxlength="500"></div>
+            <div class="field"><label>Quantity</label><input id="managementSaleQuantity" type="number" min="0.001" max="1000000" step="0.001" value="1" required></div>
+            <div class="field"><label>Custom unit price</label><input id="managementSalePrice" type="number" min="0" max="100000000" step="0.01" required></div>
+            <div class="field"><label>Currency</label><select id="managementSaleCurrency"><option>USD</option><option>ZiG</option></select></div>
+            <div class="field"><label>Sale date and time</label><input id="managementSaleDate" type="datetime-local" required></div>
+            <div class="field"><label>Payment method</label><select id="managementSalePayment"><option value="cash">Cash</option><option value="ecocash">EcoCash</option><option value="card">Card</option><option value="bank_transfer">Bank transfer</option></select></div>
+            <div class="field"><label>Payment reference</label><input id="managementSaleReference" maxlength="200"></div>
+            <div class="field full"><label>Reason (minimum 5 characters)</label><textarea id="managementSaleReason" required minlength="5" maxlength="1000"></textarea></div>
+            <div class="full"><button class="btn primary" type="submit">Record audited sale</button></div>
+          </form>
+          <div id="managementSaleStatus" class="status hidden"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><div><h3>Reset sales and expenses</h3><div class="muted">This audited reset voids records and restores sale stock; it does not erase evidence.</div></div></div>
+          <form id="financialResetForm" class="form-grid">
+            <div class="field"><label>Reset scope</label><select id="financialResetScope"><option value="all">Sales and expenses</option><option value="sales">Sales only</option><option value="expenses">Expenses only</option></select></div>
+            <div class="field"><label>Confirmation phrase</label><input id="financialResetConfirmation" required autocomplete="off"></div>
+            <div class="field"><label>From date (optional)</label><input id="financialResetFrom" type="date"></div>
+            <div class="field"><label>To date (optional)</label><input id="financialResetTo" type="date"></div>
+            <div class="field full"><label>Reason (minimum 5 characters)</label><textarea id="financialResetReason" required minlength="5" maxlength="1000"></textarea></div>
+            <div class="full muted" id="financialResetHint">Type RESET ALL exactly to continue.</div>
+            <div class="full"><button class="btn danger" type="submit">Run audited reset</button></div>
+          </form>
+          <div id="financialResetStatus" class="status hidden"></div>
+          <div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>When</th><th>Scope</th><th>Sales</th><th>Expenses</th><th>Actor</th></tr></thead><tbody id="financialResetRows"></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="receiptsPage" class="hidden"><div class="panel"><div class="panel-head"><h3>Receipt and printer settings</h3></div><form id="receiptForm" class="form-grid"><div class="field"><label>Business name</label><input id="receiptBusiness" required></div><div class="field"><label>Receipt title</label><input id="receiptTitle" required></div><div class="field"><label>Address line 1</label><input id="receiptAddress1" required></div><div class="field"><label>Address line 2</label><input id="receiptAddress2" required></div><div class="field"><label>Phone 1</label><input id="receiptPhone1" required></div><div class="field"><label>Phone 2</label><input id="receiptPhone2"></div><div class="field"><label>Thermal width</label><select id="receiptWidth"><option value="58">58mm</option><option value="80">80mm</option></select></div><div class="field"><label>Preferred thermal printer</label><input id="receiptPrinter"></div><div class="field"><label>Default document size</label><select id="receiptDocumentSize"><option value="A4">A4</option><option value="A5">A5</option></select></div><div class="field"><label>Thank-you message</label><input id="receiptThanks"></div><div class="field full"><label>Custom header</label><input id="receiptHeader" maxlength="500"></div><div class="field full"><label>Custom information</label><textarea id="receiptInformation" maxlength="2000"></textarea></div><div class="field full"><label>Terms and conditions</label><textarea id="receiptTerms" maxlength="5000"></textarea></div><div class="field full"><label>Custom footer</label><input id="receiptFooter" maxlength="500"></div><div class="field"><label><input id="receiptAutoPrint" type="checkbox" style="width:auto"> Automatically print after sale</label></div><div class="field"><label><input id="receiptPrintLogo" type="checkbox" style="width:auto"> Include logo on thermal, A4 and A5 receipts</label></div><div class="full"><button class="btn primary" type="submit">Save receipt settings</button></div></form><div id="receiptStatus" class="status hidden"></div></div></section>
   </main>
 </section>
 
@@ -1049,8 +1086,76 @@ async function setUserActive(id,active){if(!confirm((active?'Enable':'Disable')+
 async function resetUserPassword(id){const password=prompt('Enter a new temporary password (minimum 12 characters)');if(password===null)return;try{await adminUsers('PATCH',{action:'reset_password',user_id:id,password});status('userStatus','Password reset successfully.','ok')}catch(err){status('userStatus',err.message,'error')}}
 async function loadDevices(){try{const data=await functionCall('manage-devices','GET');$('deviceRows').innerHTML='';(data.devices||[]).forEach(d=>{const tr=document.createElement('tr');[d.till_code,d.device_name,d.app_version||'—',new Date(d.registered_at).toLocaleString(),d.last_seen_at?new Date(d.last_seen_at).toLocaleString():'Never'].forEach(v=>tr.appendChild(td(v)));const s=td('');const pill=document.createElement('span');pill.className='pill '+(d.revoked_at?'revoked':'active');pill.textContent=d.revoked_at?'Revoked':'Active';s.appendChild(pill);tr.appendChild(s);const a=td('');const b=document.createElement('button');b.className='btn '+(d.revoked_at?'ghost':'danger')+' small';b.textContent=d.revoked_at?'Restore':'Revoke';b.onclick=()=>deviceAction(d.id,d.revoked_at?'restore':'revoke');a.appendChild(b);tr.appendChild(a);$('deviceRows').appendChild(tr)})}catch(err){status('deviceStatus',err.message,'error')}}
 async function deviceAction(id,action){if(!confirm(action[0].toUpperCase()+action.slice(1)+' this device?'))return;try{await functionCall('manage-devices','PATCH',{device_id:id,action});await loadDevices()}catch(err){status('deviceStatus',err.message,'error')}}
-async function loadReceiptSettings(){const {data,error}=await supabase.from('receipt_settings').select('*').eq('branch_id',profile.branch_id).single();if(error)return status('receiptStatus',error.message,'error');$('receiptBusiness').value=data.business_name||'';$('receiptTitle').value=data.receipt_title||'SALES RECEIPT';$('receiptAddress1').value=data.address_line_1||'';$('receiptAddress2').value=data.address_line_2||'';$('receiptPhone1').value=data.phone_1||'';$('receiptPhone2').value=data.phone_2||'';$('receiptWidth').value=String(data.paper_width_mm||80);$('receiptPrinter').value=data.thermal_printer_name||data.preferred_printer_name||'';$('receiptThanks').value=data.thank_you_message||'';$('receiptFooter').value=data.custom_footer||'';$('receiptAutoPrint').checked=data.auto_print!==false;$('receiptPrintLogo').checked=data.print_logo!==false}
-$('receiptForm').onsubmit=async e=>{e.preventDefault();const {data:{user}}=await supabase.auth.getUser();const changes={business_name:$('receiptBusiness').value.trim(),receipt_title:$('receiptTitle').value.trim(),address_line_1:$('receiptAddress1').value.trim(),address_line_2:$('receiptAddress2').value.trim(),phone_1:$('receiptPhone1').value.trim(),phone_2:$('receiptPhone2').value.trim(),paper_width_mm:Number($('receiptWidth').value),thermal_printer_name:$('receiptPrinter').value.trim()||null,preferred_printer_name:$('receiptPrinter').value.trim()||null,thank_you_message:$('receiptThanks').value.trim(),custom_footer:$('receiptFooter').value.trim()||null,auto_print:$('receiptAutoPrint').checked,print_logo:$('receiptPrintLogo').checked,updated_by:user.id};const {error}=await supabase.from('receipt_settings').update(changes).eq('branch_id',profile.branch_id);if(error)return status('receiptStatus',error.message,'error');status('receiptStatus','Receipt settings saved. Desktop tills will retrieve them when online.','ok')};
+async function loadManagementControls(){
+  if(!['manager','administrator'].includes(profile?.role))return;
+  const [{data:items,error:itemError},{data:batches,error:batchError}]=await Promise.all([
+    supabase.from('catalog_items').select('id,name,selling_price,selling_price_zig').eq('branch_id',profile.branch_id).eq('is_active',true).order('name'),
+    supabase.from('financial_reset_batches').select('created_at,reset_scope,sales_voided,expenses_voided,actor_id').eq('branch_id',profile.branch_id).order('created_at',{ascending:false}).limit(20)
+  ]);
+  if(itemError)status('managementSaleStatus',itemError.message,'error');
+  const select=$('managementSaleCatalog'),current=select.value;
+  select.innerHTML='<option value="">Custom line / service</option>';
+  (items||[]).forEach(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=item.name;option.dataset.usd=item.selling_price??'';option.dataset.zig=item.selling_price_zig??'';select.appendChild(option)});
+  select.value=current;
+  $('financialResetRows').innerHTML='';
+  if(batchError)return status('financialResetStatus',batchError.message,'error');
+  (batches||[]).forEach(batch=>{const tr=document.createElement('tr');[new Date(batch.created_at).toLocaleString(),batch.reset_scope,batch.sales_voided,batch.expenses_voided,batch.actor_id.slice(0,8)].forEach(value=>tr.appendChild(td(value)));$('financialResetRows').appendChild(tr)});
+}
+function managementLocalDateTime(){
+  const value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString();
+  return value.slice(0,16);
+}
+function refreshManagementSalePrice(){
+  const option=$('managementSaleCatalog').selectedOptions[0];
+  const currency=$('managementSaleCurrency').value.toLowerCase();
+  if(option?.value){
+    $('managementSaleDescription').value=option.textContent||'';
+    const price=currency==='zig'?option.dataset.zig:option.dataset.usd;
+    if(price!=='')$('managementSalePrice').value=Number(price).toFixed(2);
+  }
+}
+async function saveManagementSale(event){
+  event.preventDefault();
+  const payment=$('managementSalePayment').value;
+  const reference=$('managementSaleReference').value.trim();
+  if(payment!=='cash'&&!reference)return status('managementSaleStatus','A payment reference is required for non-cash sales.','error');
+  const localDate=$('managementSaleDate').value;
+  if(!localDate)return status('managementSaleStatus','Choose the original sale date and time.','error');
+  status('managementSaleStatus','Recording sale…');
+  const {data,error}=await supabase.rpc('record_management_sale',{
+    p_sale_date:new Date(localDate).toISOString(),
+    p_currency:$('managementSaleCurrency').value,
+    p_description:$('managementSaleDescription').value.trim(),
+    p_quantity:Number($('managementSaleQuantity').value),
+    p_unit_price:Number($('managementSalePrice').value),
+    p_payment_method:payment,
+    p_reason:$('managementSaleReason').value.trim(),
+    p_catalog_item_id:$('managementSaleCatalog').value||null,
+    p_payment_reference:reference||null
+  });
+  if(error)return status('managementSaleStatus',error.message,'error');
+  status('managementSaleStatus','Sale '+data.receipt_number+' recorded for '+new Date(data.sale_date).toLocaleString()+'.','ok');
+  $('managementSaleReason').value='';$('managementSaleReference').value='';$('managementSaleDate').value=managementLocalDateTime();
+  await Promise.all([loadDashboard(),loadTransactions(),loadManagementControls()]);
+}
+async function runFinancialReset(event){
+  event.preventDefault();
+  const scope=$('financialResetScope').value,expected='RESET '+scope.toUpperCase();
+  if($('financialResetConfirmation').value.trim()!==expected)return status('financialResetStatus','Type '+expected+' exactly.','error');
+  if(!confirm('Run the audited '+scope+' reset now? Affected records will be voided and sale stock restored.'))return;
+  status('financialResetStatus','Reset in progress…');
+  const {data,error}=await supabase.rpc('reset_sales_and_expenses',{
+    p_scope:scope,p_reason:$('financialResetReason').value.trim(),
+    p_confirmation:expected,p_from:$('financialResetFrom').value||null,
+    p_to:$('financialResetTo').value||null
+  });
+  if(error)return status('financialResetStatus',error.message,'error');
+  status('financialResetStatus','Reset complete: '+data.sales_voided+' sale(s), '+data.expenses_voided+' expense(s) voided.','ok');
+  $('financialResetReason').value='';$('financialResetConfirmation').value='';
+  await Promise.all([loadDashboard(),loadTransactions(),loadManagementControls()]);
+}
+async function loadReceiptSettings(){const {data,error}=await supabase.from('receipt_settings').select('*').eq('branch_id',profile.branch_id).single();if(error)return status('receiptStatus',error.message,'error');$('receiptBusiness').value=data.business_name||'';$('receiptTitle').value=data.receipt_title||'SALES RECEIPT';$('receiptAddress1').value=data.address_line_1||'';$('receiptAddress2').value=data.address_line_2||'';$('receiptPhone1').value=data.phone_1||'';$('receiptPhone2').value=data.phone_2||'';$('receiptWidth').value=String(data.paper_width_mm||80);$('receiptPrinter').value=data.thermal_printer_name||data.preferred_printer_name||'';$('receiptDocumentSize').value=data.document_paper_size||'A4';$('receiptThanks').value=data.thank_you_message||'';$('receiptHeader').value=data.custom_header||'';$('receiptInformation').value=data.custom_information||'';$('receiptTerms').value=data.terms_and_conditions||'';$('receiptFooter').value=data.custom_footer||'';$('receiptAutoPrint').checked=data.auto_print!==false;$('receiptPrintLogo').checked=data.print_logo!==false}
+$('receiptForm').onsubmit=async e=>{e.preventDefault();const {data:{user}}=await supabase.auth.getUser();const changes={business_name:$('receiptBusiness').value.trim(),receipt_title:$('receiptTitle').value.trim(),address_line_1:$('receiptAddress1').value.trim(),address_line_2:$('receiptAddress2').value.trim(),phone_1:$('receiptPhone1').value.trim(),phone_2:$('receiptPhone2').value.trim(),paper_width_mm:Number($('receiptWidth').value),thermal_printer_name:$('receiptPrinter').value.trim()||null,preferred_printer_name:$('receiptPrinter').value.trim()||null,document_paper_size:$('receiptDocumentSize').value,thank_you_message:$('receiptThanks').value.trim(),custom_header:$('receiptHeader').value.trim()||null,custom_information:$('receiptInformation').value.trim()||null,terms_and_conditions:$('receiptTerms').value.trim()||null,custom_footer:$('receiptFooter').value.trim()||null,auto_print:$('receiptAutoPrint').checked,print_logo:$('receiptPrintLogo').checked,updated_by:user.id};const {error}=await supabase.from('receipt_settings').update(changes).eq('branch_id',profile.branch_id);if(error)return status('receiptStatus',error.message,'error');status('receiptStatus','Receipt settings saved. Desktop tills will retrieve them when online.','ok')};
 
 let financePeriod='month',financeData=null,financeExportRows=[];
 function portalLocalDate(){const d=new Date(),pad=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
@@ -1112,11 +1217,11 @@ async function loadOutsourced(){const [supplierResult,jobResult,outResult]=await
 $('outsourcedForm').onsubmit=async e=>{e.preventDefault();const row={branch_id:profile.branch_id,supplier_id:$('outSupplier').value,production_job_id:$('outProduction').value||null,service_description:$('outDescription').value.trim(),external_reference:$('outReference').value.trim()||null,currency:$('outCurrency').value,quoted_cost:profile.is_owner&&$('outQuotedCost').value!==''?Number($('outQuotedCost').value):null,agreed_cost:profile.is_owner&&$('outCost').value!==''?Number($('outCost').value):null,actual_cost:profile.is_owner&&$('outActualCost').value!==''?Number($('outActualCost').value):null,due_at:$('outDue').value?new Date($('outDue').value).toISOString():null,status:$('outStatus').value,quality_status:$('outQuality').value,notes:$('outNotes').value.trim()||null,status_note:$('outNotes').value.trim()||null};const {error}=await supabase.from('outsourced_jobs').insert(row);if(error)return status('outsourcedStatus',error.message,'error');status('outsourcedStatus','Outsourced job saved with its first history event.','ok');e.target.reset();await loadOutsourced()};
 
 async function loadSessions(){const {data,error}=await supabase.rpc('get_session_monitoring',{p_limit:200});if(error)return status('sessionStatus',error.message,'error');$('sessionRows').innerHTML='';(data?.sessions||[]).forEach(item=>{const tr=document.createElement('tr');[item.display_name,item.client_type,item.client_name,item.login_method,new Date(item.started_at).toLocaleString(),new Date(item.last_seen_at).toLocaleString(),item.is_online?'Online':(item.ended_at?'Ended':'Stale')].forEach(v=>tr.appendChild(td(v)));$('sessionRows').appendChild(tr)});$('loginEventRows').innerHTML='';(data?.login_events||[]).forEach(item=>{const tr=document.createElement('tr');[item.display_name,item.event_type.replaceAll('_',' '),item.client_type,new Date(item.occurred_at).toLocaleString()].forEach(v=>tr.appendChild(td(v)));$('loginEventRows').appendChild(tr)});status('sessionStatus',(data?.sessions||[]).filter(item=>item.is_online).length+' active session(s); '+(data?.login_events||[]).length+' login event(s).','ok')}
-const loaders={dashboard:loadDashboard,transactions:loadTransactions,shifts:loadShifts,reports:loadReport,operations:loadOperations,audit:loadAudit,health:loadHealth,catalog:loadCatalog,customers:loadCustomers,suppliers:loadSuppliers,outsourced:loadOutsourced,change:loadChange,sessions:loadSessions,finance:loadFinance,suite:loadSuite,users:loadUsers,devices:loadDevices,receipts:loadReceiptSettings};const titles={dashboard:'Dashboard',transactions:'Transactions',shifts:'Till Shifts',reports:'Reports',operations:'Voids & Refunds',audit:'Audit Trail',health:'System Health',catalog:'Stocks & Inventory',customers:'Customers',suppliers:'Suppliers',outsourced:'Outsourced Jobs',change:'Outstanding Change',sessions:'Login Monitoring',finance:'Finance & Profit/Loss',suite:'Business Suite',users:'Users',devices:'Devices',receipts:'Receipt Settings'};
-function page(name){if(['finance','sessions'].includes(name)&&!profile?.is_owner)return alert('Only the branch owner can open this page.');if(['catalog','suite'].includes(name)&&!['manager','administrator','auditor'].includes(profile?.role))return alert('Manager, administrator or auditor access is required.');Object.keys(loaders).forEach(p=>$(p+'Page').classList.toggle('hidden',p!==name));document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===name));$('pageTitle').textContent=titles[name];loaders[name]()}
-document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>page(b.dataset.page));$('refreshDashboard').onclick=loadDashboard;$('refreshTransactions').onclick=loadTransactions;$('refreshShifts').onclick=loadShifts;$('runReport').onclick=loadReport;$('exportReport').onclick=exportReportCsv;$('refreshOperations').onclick=loadOperations;$('refreshAudit').onclick=loadAudit;$('refreshHealth').onclick=loadHealth;$('refreshCatalog').onclick=loadCatalog;$('refreshInventoryDetails').onclick=loadCatalog;$('portalInventorySearch').oninput=renderPortalInventoryDetails;$('portalInventoryStatus').onchange=()=>{portalStockFilter=$('portalInventoryStatus').value;renderPortalInventoryDetails()};$('exportInventory').onclick=exportInventoryCsv;document.querySelectorAll('[data-portal-stock-filter]').forEach(button=>button.onclick=()=>{portalStockFilter=button.dataset.portalStockFilter;$('portalInventoryStatus').value=portalStockFilter;renderPortalInventoryDetails()});['click','keydown'].forEach(type=>{$('portalLowStockCard').addEventListener(type,event=>activatePortalInventory(event,'all'));$('portalStockHealthCard').addEventListener(type,event=>activatePortalInventory(event,'all'))});$('refreshCustomers').onclick=loadCustomers;$('refreshSuppliers').onclick=loadSuppliers;$('refreshOutsourced').onclick=loadOutsourced;$('refreshChange').onclick=loadChange;$('refreshSessions').onclick=loadSessions;$('refreshFinance').onclick=loadFinance;$('exportFinance').onclick=exportFinanceCsv;$('financeExpenseForm').onsubmit=saveFinanceExpense;$('financeAnchor').onchange=loadFinance;document.querySelectorAll('[data-finance-period]').forEach(button=>button.onclick=()=>setFinancePeriod(button.dataset.financePeriod));$('refreshUsers').onclick=loadUsers;$('refreshDevices').onclick=loadDevices;$('logoutBtn').onclick=async()=>{await endPortalSession();await supabase.auth.signOut();location.reload()};
+const loaders={dashboard:loadDashboard,transactions:loadTransactions,shifts:loadShifts,reports:loadReport,operations:loadOperations,audit:loadAudit,health:loadHealth,catalog:loadCatalog,customers:loadCustomers,suppliers:loadSuppliers,outsourced:loadOutsourced,change:loadChange,sessions:loadSessions,finance:loadFinance,suite:loadSuite,users:loadUsers,devices:loadDevices,controls:loadManagementControls,receipts:loadReceiptSettings};const titles={dashboard:'Dashboard',transactions:'Transactions',shifts:'Till Shifts',reports:'Reports',operations:'Voids & Refunds',audit:'Audit Trail',health:'System Health',catalog:'Stocks & Inventory',customers:'Customers',suppliers:'Suppliers',outsourced:'Outsourced Jobs',change:'Outstanding Change',sessions:'Login Monitoring',finance:'Finance & Profit/Loss',suite:'Business Suite',users:'Users',devices:'Devices',controls:'Sales & Reset Controls',receipts:'Receipt Settings'};
+function page(name){if(['finance','sessions'].includes(name)&&!profile?.is_owner)return alert('Only the branch owner can open this page.');if(['catalog','suite'].includes(name)&&!['manager','administrator','auditor'].includes(profile?.role))return alert('Manager, administrator or auditor access is required.');if(name==='controls'&&!['manager','administrator'].includes(profile?.role))return alert('Manager or administrator access is required.');Object.keys(loaders).forEach(p=>$(p+'Page').classList.toggle('hidden',p!==name));document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===name));$('pageTitle').textContent=titles[name];loaders[name]()}
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>page(b.dataset.page));$('refreshDashboard').onclick=loadDashboard;$('refreshTransactions').onclick=loadTransactions;$('refreshShifts').onclick=loadShifts;$('runReport').onclick=loadReport;$('exportReport').onclick=exportReportCsv;$('refreshOperations').onclick=loadOperations;$('refreshAudit').onclick=loadAudit;$('refreshHealth').onclick=loadHealth;$('refreshCatalog').onclick=loadCatalog;$('refreshInventoryDetails').onclick=loadCatalog;$('portalInventorySearch').oninput=renderPortalInventoryDetails;$('portalInventoryStatus').onchange=()=>{portalStockFilter=$('portalInventoryStatus').value;renderPortalInventoryDetails()};$('exportInventory').onclick=exportInventoryCsv;document.querySelectorAll('[data-portal-stock-filter]').forEach(button=>button.onclick=()=>{portalStockFilter=button.dataset.portalStockFilter;$('portalInventoryStatus').value=portalStockFilter;renderPortalInventoryDetails()});['click','keydown'].forEach(type=>{$('portalLowStockCard').addEventListener(type,event=>activatePortalInventory(event,'all'));$('portalStockHealthCard').addEventListener(type,event=>activatePortalInventory(event,'all'))});$('refreshCustomers').onclick=loadCustomers;$('refreshSuppliers').onclick=loadSuppliers;$('refreshOutsourced').onclick=loadOutsourced;$('refreshChange').onclick=loadChange;$('refreshSessions').onclick=loadSessions;$('refreshFinance').onclick=loadFinance;$('exportFinance').onclick=exportFinanceCsv;$('financeExpenseForm').onsubmit=saveFinanceExpense;$('financeAnchor').onchange=loadFinance;document.querySelectorAll('[data-finance-period]').forEach(button=>button.onclick=()=>setFinancePeriod(button.dataset.financePeriod));$('refreshUsers').onclick=loadUsers;$('refreshDevices').onclick=loadDevices;$('managementSaleForm').onsubmit=saveManagementSale;$('financialResetForm').onsubmit=runFinancialReset;$('managementSaleCatalog').onchange=refreshManagementSalePrice;$('managementSaleCurrency').onchange=refreshManagementSalePrice;$('financialResetScope').onchange=()=>{$('financialResetHint').textContent='Type RESET '+$('financialResetScope').value.toUpperCase()+' exactly to continue.'};$('logoutBtn').onclick=async()=>{await endPortalSession();await supabase.auth.signOut();location.reload()};
 function startRealtime(){let refreshTimer=null;const refresh=()=>{clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{await loadDashboard();const active=document.querySelector('[data-page].active')?.dataset.page;if(active==='transactions')await loadTransactions();if(active==='shifts')await loadShifts();if(active==='operations')await loadOperations();if(active==='health')await loadHealth();if(active==='catalog')await loadCatalog();if(active==='change')await loadChange();if(active==='outsourced')await loadOutsourced();if(active==='sessions')await loadSessions();if(active==='finance')await loadFinance();if(active==='suite')await Promise.all([loadSuiteDashboard(),loadSuiteRecords()])}catch(_error){}},350)};let channel=supabase.channel('omnihub-v1-live').on('postgres_changes',{event:'*',schema:'public',table:'sales'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'sale_lines'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'expenses'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'catalog_items'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'till_shifts'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'operation_requests'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'change_settlements'},refresh);['business_documents','production_jobs','management_approvals','notifications'].forEach(table=>{channel=channel.on('postgres_changes',{event:'*',schema:'public',table},refresh)});channel.subscribe(state=>{const badge=$('liveBadge');if(!badge)return;const connected=state==='SUBSCRIBED';badge.textContent=connected?'LIVE':state==='CHANNEL_ERROR'?'RETRYING':'CONNECTING';badge.classList.toggle('offline',!connected)})}
-const today=portalLocalDate();$('reportFrom').value=today;$('reportTo').value=today;$('financeAnchor').value=today;$('financeExpenseDate').value=today;const {data:{session}}=await supabase.auth.getSession();if(session){await showApp('restored');startRealtime();if(location.hash==='#suite'&&['manager','administrator','auditor'].includes(profile?.role))page('suite');if(location.hash==='#finance'&&profile?.is_owner)page('finance')}
+const today=portalLocalDate();$('reportFrom').value=today;$('reportTo').value=today;$('financeAnchor').value=today;$('financeExpenseDate').value=today;$('managementSaleDate').value=managementLocalDateTime();const {data:{session}}=await supabase.auth.getSession();if(session){await showApp('restored');startRealtime();if(location.hash==='#suite'&&['manager','administrator','auditor'].includes(profile?.role))page('suite');if(location.hash==='#finance'&&profile?.is_owner)page('finance')}
 </script>
 <script src="crm-module.js"></script>\n</body>
 </html>
