@@ -24,7 +24,7 @@ new vm.Script(quotationPdf,{filename:'quotation-pdf.js'});
 const checks=[
   [order.includes('/functions/v1/customer-order-public'),'customer orders use protected Edge gateway'],
   [!order.includes('/rest/v1/rpc/'),'customer orders do not call privileged RPCs directly'],
-  [html.includes('OmniHub Solutions Portal v2.6.0'),'portal release version'],
+  [html.includes('OmniHub Solutions Portal v2.7.2'),'portal release version'],
   [html.includes('src="./vendor/supabase.js"')&&html.includes('window.supabase||{}')&&!html.includes("from './vendor/supabase.js'"),'local Supabase browser bootstrap'],
   [vendor.startsWith('var supabase=')&&vendor.includes('createClient'),'vendored Supabase UMD contract'],
   [html.includes('OmniHubCRMContext')&&html.includes('src="crm-module.js"'),'CRM host integration'],
@@ -41,10 +41,13 @@ const checks=[
   [html.includes('ensurePortalSession')&&html.includes('loginEventRows'),'resilient session and login monitoring'],
   [html.includes('customerPricingTier')&&html.includes('pricing_tier'),'customer trade pricing controls'],
   [html.includes('invalid_outsourced_job_status_transition')===false&&html.includes('status_note'),'outsourced status-note workflow'],
+  [html.includes('Delete selected sales or expenses')&&html.includes('deleteSelectedSales')&&html.includes('deleteSelectedExpenses'),'visible selective-deletion controls'],
+  [html.includes('get_financial_deletion_candidates')&&html.includes('delete_selected_financial_records'),'selective-deletion RPC clients'],
+  [html.includes('DELETE SELECTED')&&html.includes('DELETE ALL SALES')&&html.includes('DELETE ALL EXPENSES'),'explicit financial-deletion confirmations'],
 ];
 for(const [ok,label] of checks)if(!ok)throw new Error('Validation failed: '+label);
 
 const ids=[...html.matchAll(/\sid="([^"]+)"/g),...crm.matchAll(/\sid=\\"([^"]+)\\"/g)].map(x=>x[1]);
 const dup=ids.filter((id,i)=>ids.indexOf(id)!==i);
 if(dup.length)throw new Error('Duplicate UI IDs: '+[...new Set(dup)].join(', '));
-console.log('Portal CRM and quotation validation passed.');
+console.log('Portal v2.7.2 management, deletion, CRM, and quotation validation passed.');
