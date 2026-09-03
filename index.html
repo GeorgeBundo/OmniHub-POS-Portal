@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OmniHub Solutions Portal v2.6.0</title>
+<title>OmniHub Solutions Portal v2.7.2</title>
 <meta name="application-name" content="OmniHub Solutions Portal">
 <meta name="description" content="Secure OmniHub POS management portal.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -844,7 +844,7 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
 </section>
 
 <section id="app" class="app hidden">
-  <aside class="sidebar"><div class="sidebar-logo"><img id="sidebarLogo" alt="OmniHub Solutions logo"><span>OMNIHUB POS v2.7.0</span></div><div class="nav">
+  <aside class="sidebar"><div class="sidebar-logo"><img id="sidebarLogo" alt="OmniHub Solutions logo"><span>OMNIHUB POS v2.7.2</span></div><div class="nav">
     <button data-page="dashboard" class="active">Dashboard</button>
     <button data-page="transactions">Transactions</button>
     <button data-page="shifts" data-roles="supervisor,manager,administrator,auditor">Till Shifts</button>
@@ -862,7 +862,7 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
     <button data-page="suite" data-roles="manager,administrator,auditor">Business Suite</button>
     <button data-page="users" data-roles="administrator">Users</button>
     <button data-page="devices" data-roles="administrator">Devices</button>
-    <button data-page="controls" data-roles="manager,administrator">Sales &amp; Reset Controls</button>
+    <button data-page="controls" data-roles="manager,administrator">Sales &amp; Delete Controls</button>
     <button data-page="receipts" data-roles="manager,administrator">Receipt Settings</button>
     <button id="logoutBtn">Sign out</button>
   </div></aside>
@@ -945,6 +945,41 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
     <section id="devicesPage" class="hidden"><div class="panel"><div class="panel-head"><h3>Registered tills and devices</h3><button class="btn ghost" id="refreshDevices">Refresh</button></div><div id="deviceStatus" class="status hidden"></div><div class="table-wrap"><table><thead><tr><th>Till</th><th>Computer</th><th>Version</th><th>Registered</th><th>Last seen</th><th>Status</th><th>Action</th></tr></thead><tbody id="deviceRows"></tbody></table></div></div></section>
 
     <section id="controlsPage" class="hidden">
+      <div class="panel">
+        <div class="panel-head">
+          <div>
+            <h3>Delete selected sales or expenses</h3>
+            <div class="muted">Select one or several active records. Deleted records leave operational totals, sale stock is restored, and the protected audit history remains.</div>
+          </div>
+          <button id="refreshFinancialDeletion" class="btn ghost" type="button">Refresh lists</button>
+        </div>
+        <form id="financialDeletionFilterForm" class="form-grid">
+          <div class="field"><label>From date (optional)</label><input id="financialDeletionFrom" type="date"></div>
+          <div class="field"><label>To date (optional)</label><input id="financialDeletionTo" type="date"></div>
+          <div class="full"><button class="btn secondary" type="submit">Apply date filter</button></div>
+        </form>
+        <div class="grid two" style="margin-top:18px">
+          <div>
+            <div class="panel-head"><h3>Sales available to delete</h3><label class="muted"><input id="selectAllDeletionSales" type="checkbox" style="width:auto"> Select all shown</label></div>
+            <div class="table-wrap"><table><thead><tr><th></th><th>Receipt</th><th>Date</th><th>Till</th><th>Currency</th><th>Total</th></tr></thead><tbody id="financialDeletionSaleRows"></tbody></table></div>
+          </div>
+          <div>
+            <div class="panel-head"><h3>Expenses available to delete</h3><label class="muted"><input id="selectAllDeletionExpenses" type="checkbox" style="width:auto"> Select all shown</label></div>
+            <div class="table-wrap"><table><thead><tr><th></th><th>Expense</th><th>Date</th><th>Category</th><th>Currency</th><th>Amount</th></tr></thead><tbody id="financialDeletionExpenseRows"></tbody></table></div>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:18px">
+          <div class="field full"><label>Deletion reason (minimum 5 characters)</label><textarea id="financialDeletionReason" minlength="5" maxlength="1000"></textarea></div>
+          <div class="field full"><label>Confirmation phrase</label><input id="financialDeletionConfirmation" autocomplete="off" placeholder="Type DELETE SELECTED"></div>
+        </div>
+        <div class="toolbar" style="margin-top:12px">
+          <button id="deleteSelectedSales" class="btn danger" type="button">Delete selected sales</button>
+          <button id="deleteSelectedExpenses" class="btn danger" type="button">Delete selected expenses</button>
+          <button id="deleteSelectedFinancial" class="btn danger" type="button">Delete every selected row</button>
+        </div>
+        <div id="financialDeletionStatus" class="status hidden"></div>
+      </div>
+
       <div class="grid two">
         <div class="panel">
           <div class="panel-head"><div><h3>Record a management sale</h3><div class="muted">Add a previous-day sale or a custom-price sale. Every entry is attributed and audited.</div></div></div>
@@ -963,15 +998,15 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
           <div id="managementSaleStatus" class="status hidden"></div>
         </div>
         <div class="panel">
-          <div class="panel-head"><div><h3>Reset sales and expenses</h3><div class="muted">This audited reset voids records and restores sale stock; it does not erase evidence.</div></div></div>
+          <div class="panel-head"><div><h3>Delete all sales and/or expenses</h3><div class="muted">Choose a scope and optional date range. Matching records leave operational totals, sale stock is restored, and audit evidence remains protected.</div></div></div>
           <form id="financialResetForm" class="form-grid">
-            <div class="field"><label>Reset scope</label><select id="financialResetScope"><option value="all">Sales and expenses</option><option value="sales">Sales only</option><option value="expenses">Expenses only</option></select></div>
+            <div class="field"><label>Delete-all scope</label><select id="financialResetScope"><option value="all">Sales and expenses</option><option value="sales">Sales only</option><option value="expenses">Expenses only</option></select></div>
             <div class="field"><label>Confirmation phrase</label><input id="financialResetConfirmation" required autocomplete="off"></div>
             <div class="field"><label>From date (optional)</label><input id="financialResetFrom" type="date"></div>
             <div class="field"><label>To date (optional)</label><input id="financialResetTo" type="date"></div>
             <div class="field full"><label>Reason (minimum 5 characters)</label><textarea id="financialResetReason" required minlength="5" maxlength="1000"></textarea></div>
-            <div class="full muted" id="financialResetHint">Type RESET ALL exactly to continue.</div>
-            <div class="full"><button class="btn danger" type="submit">Run audited reset</button></div>
+            <div class="full muted" id="financialResetHint">Type DELETE ALL SALES AND EXPENSES exactly to continue.</div>
+            <div class="full"><button class="btn danger" type="submit">Delete all matching records</button></div>
           </form>
           <div id="financialResetStatus" class="status hidden"></div>
           <div class="table-wrap" style="margin-top:18px"><table><thead><tr><th>When</th><th>Scope</th><th>Sales</th><th>Expenses</th><th>Actor</th></tr></thead><tbody id="financialResetRows"></tbody></table></div>
@@ -1044,7 +1079,7 @@ async function loadProfile(){const {data:{user}}=await supabase.auth.getUser();i
 function applyRoleNavigation(){document.querySelectorAll('[data-roles]').forEach(b=>{const roles=b.dataset.roles.split(',');b.classList.toggle('hidden',!roles.includes(profile.role))});document.querySelectorAll('[data-owner-only]').forEach(b=>b.classList.toggle('hidden',!profile.is_owner))}
 function configureCatalogAccess(){const canWrite=['manager','administrator'].includes(profile.role);$('catalogWritePanel').classList.toggle('hidden',!canWrite);$('catalogReadOnly').classList.toggle('hidden',profile.role!=='auditor')}
 let portalSessionStarted=false,portalHeartbeatTimer=null,portalSessionId=sessionStorage.getItem('omnihubPortalSession')||crypto.randomUUID();sessionStorage.setItem('omnihubPortalSession',portalSessionId);
-async function ensurePortalSession(loginMethod='restored'){if(!portalSessionStarted){const result=await supabase.rpc('record_user_session',{p_session_id:portalSessionId,p_client_type:'web',p_client_name:navigator.platform||'Browser',p_app_version:'2.6.0',p_user_agent:navigator.userAgent,p_device_id:null,p_login_method:loginMethod});portalSessionStarted=!result.error;return portalSessionStarted}const heartbeat=await supabase.rpc('heartbeat_user_session',{p_session_id:portalSessionId});if(heartbeat.error||heartbeat.data!==true){portalSessionStarted=false;return ensurePortalSession('restored')}return true}
+async function ensurePortalSession(loginMethod='restored'){if(!portalSessionStarted){const result=await supabase.rpc('record_user_session',{p_session_id:portalSessionId,p_client_type:'web',p_client_name:navigator.platform||'Browser',p_app_version:'2.7.2',p_user_agent:navigator.userAgent,p_device_id:null,p_login_method:loginMethod});portalSessionStarted=!result.error;return portalSessionStarted}const heartbeat=await supabase.rpc('heartbeat_user_session',{p_session_id:portalSessionId});if(heartbeat.error||heartbeat.data!==true){portalSessionStarted=false;return ensurePortalSession('restored')}return true}
 async function recordPortalSession(loginMethod='restored'){await ensurePortalSession(loginMethod);if(!portalHeartbeatTimer)portalHeartbeatTimer=setInterval(()=>ensurePortalSession('restored'),300000)}
 async function endPortalSession(){if(portalHeartbeatTimer){clearInterval(portalHeartbeatTimer);portalHeartbeatTimer=null}await supabase.rpc('end_user_session',{p_session_id:portalSessionId,p_reason:'signed_out'});portalSessionStarted=false;sessionStorage.removeItem('omnihubPortalSession')}
 async function showApp(loginMethod='restored'){profile=await loadProfile();if(!profile){status('authStatus','This account has no OmniHub profile. Complete first setup or ask an administrator to create the account.','error');return}if(!profile.is_active){status('authStatus','This account is disabled.','error');await supabase.auth.signOut();return}$('auth').classList.add('hidden');$('app').classList.remove('hidden');$('profileChip').textContent=profile.display_name+' · '+profile.role+(profile.is_owner?' · owner':'');applyRoleNavigation();configureCatalogAccess();await recordPortalSession(loginMethod);await loadDashboard()}
@@ -1086,6 +1121,74 @@ async function setUserActive(id,active){if(!confirm((active?'Enable':'Disable')+
 async function resetUserPassword(id){const password=prompt('Enter a new temporary password (minimum 12 characters)');if(password===null)return;try{await adminUsers('PATCH',{action:'reset_password',user_id:id,password});status('userStatus','Password reset successfully.','ok')}catch(err){status('userStatus',err.message,'error')}}
 async function loadDevices(){try{const data=await functionCall('manage-devices','GET');$('deviceRows').innerHTML='';(data.devices||[]).forEach(d=>{const tr=document.createElement('tr');[d.till_code,d.device_name,d.app_version||'—',new Date(d.registered_at).toLocaleString(),d.last_seen_at?new Date(d.last_seen_at).toLocaleString():'Never'].forEach(v=>tr.appendChild(td(v)));const s=td('');const pill=document.createElement('span');pill.className='pill '+(d.revoked_at?'revoked':'active');pill.textContent=d.revoked_at?'Revoked':'Active';s.appendChild(pill);tr.appendChild(s);const a=td('');const b=document.createElement('button');b.className='btn '+(d.revoked_at?'ghost':'danger')+' small';b.textContent=d.revoked_at?'Restore':'Revoke';b.onclick=()=>deviceAction(d.id,d.revoked_at?'restore':'revoke');a.appendChild(b);tr.appendChild(a);$('deviceRows').appendChild(tr)})}catch(err){status('deviceStatus',err.message,'error')}}
 async function deviceAction(id,action){if(!confirm(action[0].toUpperCase()+action.slice(1)+' this device?'))return;try{await functionCall('manage-devices','PATCH',{device_id:id,action});await loadDevices()}catch(err){status('deviceStatus',err.message,'error')}}
+let financialDeletionCandidates={sales:[],expenses:[]};
+
+function renderFinancialDeletionRows(){
+  const saleBody=$('financialDeletionSaleRows'),expenseBody=$('financialDeletionExpenseRows');
+  saleBody.innerHTML='';expenseBody.innerHTML='';
+  (financialDeletionCandidates.sales||[]).forEach(item=>{
+    const tr=document.createElement('tr'),pick=td(''),box=document.createElement('input');
+    box.type='checkbox';box.style.width='auto';box.dataset.deleteSale=item.id;pick.appendChild(box);tr.appendChild(pick);
+    [item.receipt_number,new Date(item.client_created_at).toLocaleString(),item.till_code,item.currency,Number(item.total||0).toFixed(2)].forEach(value=>tr.appendChild(td(value)));
+    saleBody.appendChild(tr);
+  });
+  (financialDeletionCandidates.expenses||[]).forEach(item=>{
+    const tr=document.createElement('tr'),pick=td(''),box=document.createElement('input');
+    box.type='checkbox';box.style.width='auto';box.dataset.deleteExpense=item.id;pick.appendChild(box);tr.appendChild(pick);
+    [item.expense_number,item.occurred_on,item.category,item.currency,Number(item.amount||0).toFixed(2)].forEach(value=>tr.appendChild(td(value)));
+    expenseBody.appendChild(tr);
+  });
+  if(!(financialDeletionCandidates.sales||[]).length)saleBody.innerHTML='<tr><td colspan="6">No active sales match this filter.</td></tr>';
+  if(!(financialDeletionCandidates.expenses||[]).length)expenseBody.innerHTML='<tr><td colspan="6">No active expenses match this filter.</td></tr>';
+  $('selectAllDeletionSales').checked=false;$('selectAllDeletionExpenses').checked=false;
+}
+
+async function loadFinancialDeletionCandidates(){
+  if(!['manager','administrator'].includes(profile?.role))return;
+  status('financialDeletionStatus','Loading active sales and expenses…');
+  const {data,error}=await supabase.rpc('get_financial_deletion_candidates',{
+    p_from:$('financialDeletionFrom').value||null,
+    p_to:$('financialDeletionTo').value||null,
+    p_limit:500
+  });
+  if(error)return status('financialDeletionStatus',error.message,'error');
+  financialDeletionCandidates=data||{sales:[],expenses:[]};
+  renderFinancialDeletionRows();
+  status('financialDeletionStatus',(data?.sales||[]).length+' active sale(s) and '+(data?.expenses||[]).length+' active expense(s) available.','ok');
+}
+
+function selectedFinancialDeletionIds(kind){
+  return qsa(kind==='sales'?'[data-delete-sale]:checked':'[data-delete-expense]:checked').map(box=>box.dataset[kind==='sales'?'deleteSale':'deleteExpense']);
+}
+
+async function deleteSelectedFinancialRecords(kind){
+  if(!['manager','administrator'].includes(profile?.role))return status('financialDeletionStatus','Manager or administrator access is required.','error');
+  const saleIds=kind==='expenses'?[]:selectedFinancialDeletionIds('sales');
+  const expenseIds=kind==='sales'?[]:selectedFinancialDeletionIds('expenses');
+  if(!saleIds.length&&!expenseIds.length)return status('financialDeletionStatus','Select at least one sale or expense.','error');
+  const reason=$('financialDeletionReason').value.trim();
+  if(reason.length<5)return status('financialDeletionStatus','Enter a deletion reason of at least 5 characters.','error');
+  if($('financialDeletionConfirmation').value.trim()!=='DELETE SELECTED')return status('financialDeletionStatus','Type DELETE SELECTED exactly.','error');
+  if(!confirm('Delete '+saleIds.length+' selected sale(s) and '+expenseIds.length+' selected expense(s)? This action is audited.'))return;
+  status('financialDeletionStatus','Deleting selected records…');
+  const {data,error}=await supabase.rpc('delete_selected_financial_records',{
+    p_sale_ids:saleIds,
+    p_expense_ids:expenseIds,
+    p_reason:reason,
+    p_confirmation:'DELETE SELECTED'
+  });
+  if(error)return status('financialDeletionStatus',error.message,'error');
+  $('financialDeletionReason').value='';$('financialDeletionConfirmation').value='';
+  await Promise.all([loadDashboard(),loadTransactions(),loadManagementControls()]);
+  status('financialDeletionStatus','Deleted '+data.sales_voided+' selected sale(s) and '+data.expenses_voided+' selected expense(s).','ok');
+}
+
+function deleteAllConfirmationPhrase(scope){
+  if(scope==='sales')return 'DELETE ALL SALES';
+  if(scope==='expenses')return 'DELETE ALL EXPENSES';
+  return 'DELETE ALL SALES AND EXPENSES';
+}
+
 async function loadManagementControls(){
   if(!['manager','administrator'].includes(profile?.role))return;
   const [{data:items,error:itemError},{data:batches,error:batchError}]=await Promise.all([
@@ -1100,6 +1203,7 @@ async function loadManagementControls(){
   $('financialResetRows').innerHTML='';
   if(batchError)return status('financialResetStatus',batchError.message,'error');
   (batches||[]).forEach(batch=>{const tr=document.createElement('tr');[new Date(batch.created_at).toLocaleString(),batch.reset_scope,batch.sales_voided,batch.expenses_voided,batch.actor_id.slice(0,8)].forEach(value=>tr.appendChild(td(value)));$('financialResetRows').appendChild(tr)});
+  await loadFinancialDeletionCandidates();
 }
 function managementLocalDateTime(){
   const value=new Date(Date.now()-new Date().getTimezoneOffset()*60000).toISOString();
@@ -1140,17 +1244,17 @@ async function saveManagementSale(event){
 }
 async function runFinancialReset(event){
   event.preventDefault();
-  const scope=$('financialResetScope').value,expected='RESET '+scope.toUpperCase();
+  const scope=$('financialResetScope').value,expected=deleteAllConfirmationPhrase(scope);
   if($('financialResetConfirmation').value.trim()!==expected)return status('financialResetStatus','Type '+expected+' exactly.','error');
-  if(!confirm('Run the audited '+scope+' reset now? Affected records will be voided and sale stock restored.'))return;
-  status('financialResetStatus','Reset in progress…');
+  if(!confirm('Delete all matching '+scope+' records now? The action is audited and sale stock will be restored.'))return;
+  status('financialResetStatus','Delete-all operation in progress…');
   const {data,error}=await supabase.rpc('reset_sales_and_expenses',{
     p_scope:scope,p_reason:$('financialResetReason').value.trim(),
     p_confirmation:expected,p_from:$('financialResetFrom').value||null,
     p_to:$('financialResetTo').value||null
   });
   if(error)return status('financialResetStatus',error.message,'error');
-  status('financialResetStatus','Reset complete: '+data.sales_voided+' sale(s), '+data.expenses_voided+' expense(s) voided.','ok');
+  status('financialResetStatus','Delete-all complete: '+data.sales_voided+' sale(s), '+data.expenses_voided+' expense(s) deleted.','ok');
   $('financialResetReason').value='';$('financialResetConfirmation').value='';
   await Promise.all([loadDashboard(),loadTransactions(),loadManagementControls()]);
 }
@@ -1204,8 +1308,8 @@ function exportSuiteCsv(){if(!suiteExportRows.length)return;const csv=suiteExpor
 $('suiteForm').onsubmit=e=>saveSuiteRecordV144(e).catch(error=>status('suiteStatus',error.message,'error'));$('suiteSaveDownload').onclick=()=>saveSuiteRecordV144(null,{downloadPdf:true}).catch(error=>status('suiteStatus',error.message,'error'));$('suiteAddLine').onclick=()=>addSuiteLine();$('suiteCancelEdit').onclick=resetSuiteEditor;$('suiteType').onchange=updateSuiteTypeForm;document.querySelectorAll('[data-suite]').forEach(b=>b.onclick=()=>setSuiteModule(b.dataset.suite));$('refreshSuite').onclick=()=>Promise.all([loadSuiteDashboard(),loadSuiteRecords()]);$('suiteExport').onclick=exportSuiteCsv;
 
 let reportData=[];
-async function loadTransactions(){const {data,error}=await supabase.from('sales').select('id,receipt_number,client_created_at,till_code,currency,total,change_owed,status').order('client_created_at',{ascending:false}).limit(500);if(error)return status('transactionStatus',error.message,'error');$('transactionRows').innerHTML='';(data||[]).forEach(s=>{const tr=document.createElement('tr');[s.receipt_number,new Date(s.client_created_at).toLocaleString(),s.till_code,s.currency,Number(s.total).toFixed(2),Number(s.change_owed||0).toFixed(2),s.status].forEach(v=>tr.appendChild(td(v)));const a=td('');if(['manager','administrator'].includes(profile.role)){const vb=document.createElement('button');vb.className='btn danger small';vb.textContent='Void';vb.onclick=()=>saleOperation(s,'void_sale');a.appendChild(vb);const rb=document.createElement('button');rb.className='btn secondary small';rb.textContent='Refund';rb.onclick=()=>saleOperation(s,'refund_sale');a.appendChild(rb)}tr.appendChild(a);$('transactionRows').appendChild(tr)})}
-async function saleOperation(sale,action){const label=action==='void_sale'?'void':'refund';const reason=prompt('Reason for '+label+'ing '+sale.receipt_number+' (minimum 5 characters)');if(reason===null)return;let amount=null;if(action==='refund_sale'){const value=prompt('Refund amount',Number(sale.total).toFixed(2));if(value===null)return;amount=Number(value);if(!Number.isFinite(amount)||amount<=0)return alert('Enter a valid refund amount.')}if(!confirm('Approve this '+label+'? The action will be permanently audited.'))return;try{await functionCall('pos-operations','POST',{action,sale_id:sale.id,reason,amount});status('transactionStatus',label[0].toUpperCase()+label.slice(1)+' approved and audited.','ok');await Promise.all([loadTransactions(),loadOperations(),loadDashboard(),loadChange()])}catch(err){status('transactionStatus',err.message,'error')}}
+async function loadTransactions(){const {data,error}=await supabase.from('sales').select('id,receipt_number,client_created_at,till_code,currency,total,change_owed,status').order('client_created_at',{ascending:false}).limit(500);if(error)return status('transactionStatus',error.message,'error');$('transactionRows').innerHTML='';(data||[]).forEach(s=>{const tr=document.createElement('tr');[s.receipt_number,new Date(s.client_created_at).toLocaleString(),s.till_code,s.currency,Number(s.total).toFixed(2),Number(s.change_owed||0).toFixed(2),s.status].forEach(v=>tr.appendChild(td(v)));const a=td('');if(['manager','administrator'].includes(profile.role)){const vb=document.createElement('button');vb.className='btn danger small';vb.textContent='Delete';vb.onclick=()=>saleOperation(s,'void_sale');a.appendChild(vb);const rb=document.createElement('button');rb.className='btn secondary small';rb.textContent='Refund';rb.onclick=()=>saleOperation(s,'refund_sale');a.appendChild(rb)}tr.appendChild(a);$('transactionRows').appendChild(tr)})}
+async function saleOperation(sale,action){const label=action==='void_sale'?'delete':'refund';const reason=prompt('Reason for '+label+'ing '+sale.receipt_number+' (minimum 5 characters)');if(reason===null)return;let amount=null;if(action==='refund_sale'){const value=prompt('Refund amount',Number(sale.total).toFixed(2));if(value===null)return;amount=Number(value);if(!Number.isFinite(amount)||amount<=0)return alert('Enter a valid refund amount.')}if(!confirm('Approve this '+label+'? The action will be permanently audited.'))return;try{await functionCall('pos-operations','POST',{action,sale_id:sale.id,reason,amount});status('transactionStatus',label[0].toUpperCase()+label.slice(1)+' approved and audited.','ok');await Promise.all([loadTransactions(),loadOperations(),loadDashboard(),loadChange()])}catch(err){status('transactionStatus',err.message,'error')}}
 async function loadShifts(){const {data,error}=await supabase.from('till_shifts').select('id,till_code,opened_at,opening_float_usd,opening_float_zig,closed_at,expected_cash_usd,expected_cash_zig,closing_cash_usd,closing_cash_zig,variance_usd,variance_zig,status').order('opened_at',{ascending:false}).limit(300);if(error)return status('shiftStatus',error.message,'error');$('shiftRows').innerHTML='';(data||[]).forEach(s=>{const tr=document.createElement('tr');[s.till_code,new Date(s.opened_at).toLocaleString(),money(s.opening_float_usd,'USD'),money(s.opening_float_zig,'ZiG'),s.closed_at?new Date(s.closed_at).toLocaleString():'—',s.expected_cash_usd==null?'—':money(s.expected_cash_usd,'USD'),s.expected_cash_zig==null?'—':money(s.expected_cash_zig,'ZiG'),s.closing_cash_usd==null?'—':money(s.closing_cash_usd,'USD'),s.closing_cash_zig==null?'—':money(s.closing_cash_zig,'ZiG'),s.variance_usd==null?'—':money(s.variance_usd,'USD'),s.variance_zig==null?'—':money(s.variance_zig,'ZiG'),s.status].forEach(v=>tr.appendChild(td(v)));$('shiftRows').appendChild(tr)})}
 async function loadReport(){const from=$('reportFrom').value||new Date().toISOString().slice(0,10);const to=$('reportTo').value||from;const fromIso=new Date(from+'T00:00:00').toISOString();const toDate=new Date(to+'T00:00:00');toDate.setDate(toDate.getDate()+1);const {data,error}=await supabase.rpc('get_v1_sales_report',{p_from:fromIso,p_to:toDate.toISOString()});if(error)return status('reportStatus',error.message,'error');reportData=data||[];$('reportRows').innerHTML='';const gross={USD:0,ZiG:0},net={USD:0,ZiG:0};let adjustments=0;reportData.forEach(r=>{const c=r.currency==='ZiG'?'ZiG':'USD';gross[c]+=Number(r.total||0);net[c]+=Number(r.net_total||0);if(r.operation_type)adjustments++;const tr=document.createElement('tr');[r.receipt_number,new Date(r.client_created_at).toLocaleString(),r.till_code,r.cashier_name,c,money(r.total,c),r.operation_type?`${r.operation_type} ${money(r.operation_amount||0,c)}`:'—',money(r.net_total,c)].forEach(v=>tr.appendChild(td(v)));$('reportRows').appendChild(tr)});$('reportGross').textContent=currencyMap(gross);$('reportNet').textContent=currencyMap(net);$('reportCount').textContent=reportData.length;$('reportAdjustments').textContent=adjustments;status('reportStatus','Report loaded.','ok')}
 function exportReportCsv(){if(!reportData.length)return status('reportStatus','Run the report before exporting.','error');const headers=['Receipt','Date','Till','Cashier','Currency','Gross','Operation','Operation Amount','Net'];const lines=[headers.join(',')];reportData.forEach(r=>{const values=[r.receipt_number,r.client_created_at,r.till_code,r.cashier_name,r.currency,r.total,r.operation_type,r.operation_amount,r.net_total].map(v=>'"'+String(v??'').replaceAll('"','""')+'"');lines.push(values.join(','))});const blob=new Blob([lines.join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='OmniHub-Sales-Report.csv';a.click();URL.revokeObjectURL(a.href)}
@@ -1217,9 +1321,9 @@ async function loadOutsourced(){const [supplierResult,jobResult,outResult]=await
 $('outsourcedForm').onsubmit=async e=>{e.preventDefault();const row={branch_id:profile.branch_id,supplier_id:$('outSupplier').value,production_job_id:$('outProduction').value||null,service_description:$('outDescription').value.trim(),external_reference:$('outReference').value.trim()||null,currency:$('outCurrency').value,quoted_cost:profile.is_owner&&$('outQuotedCost').value!==''?Number($('outQuotedCost').value):null,agreed_cost:profile.is_owner&&$('outCost').value!==''?Number($('outCost').value):null,actual_cost:profile.is_owner&&$('outActualCost').value!==''?Number($('outActualCost').value):null,due_at:$('outDue').value?new Date($('outDue').value).toISOString():null,status:$('outStatus').value,quality_status:$('outQuality').value,notes:$('outNotes').value.trim()||null,status_note:$('outNotes').value.trim()||null};const {error}=await supabase.from('outsourced_jobs').insert(row);if(error)return status('outsourcedStatus',error.message,'error');status('outsourcedStatus','Outsourced job saved with its first history event.','ok');e.target.reset();await loadOutsourced()};
 
 async function loadSessions(){const {data,error}=await supabase.rpc('get_session_monitoring',{p_limit:200});if(error)return status('sessionStatus',error.message,'error');$('sessionRows').innerHTML='';(data?.sessions||[]).forEach(item=>{const tr=document.createElement('tr');[item.display_name,item.client_type,item.client_name,item.login_method,new Date(item.started_at).toLocaleString(),new Date(item.last_seen_at).toLocaleString(),item.is_online?'Online':(item.ended_at?'Ended':'Stale')].forEach(v=>tr.appendChild(td(v)));$('sessionRows').appendChild(tr)});$('loginEventRows').innerHTML='';(data?.login_events||[]).forEach(item=>{const tr=document.createElement('tr');[item.display_name,item.event_type.replaceAll('_',' '),item.client_type,new Date(item.occurred_at).toLocaleString()].forEach(v=>tr.appendChild(td(v)));$('loginEventRows').appendChild(tr)});status('sessionStatus',(data?.sessions||[]).filter(item=>item.is_online).length+' active session(s); '+(data?.login_events||[]).length+' login event(s).','ok')}
-const loaders={dashboard:loadDashboard,transactions:loadTransactions,shifts:loadShifts,reports:loadReport,operations:loadOperations,audit:loadAudit,health:loadHealth,catalog:loadCatalog,customers:loadCustomers,suppliers:loadSuppliers,outsourced:loadOutsourced,change:loadChange,sessions:loadSessions,finance:loadFinance,suite:loadSuite,users:loadUsers,devices:loadDevices,controls:loadManagementControls,receipts:loadReceiptSettings};const titles={dashboard:'Dashboard',transactions:'Transactions',shifts:'Till Shifts',reports:'Reports',operations:'Voids & Refunds',audit:'Audit Trail',health:'System Health',catalog:'Stocks & Inventory',customers:'Customers',suppliers:'Suppliers',outsourced:'Outsourced Jobs',change:'Outstanding Change',sessions:'Login Monitoring',finance:'Finance & Profit/Loss',suite:'Business Suite',users:'Users',devices:'Devices',controls:'Sales & Reset Controls',receipts:'Receipt Settings'};
+const loaders={dashboard:loadDashboard,transactions:loadTransactions,shifts:loadShifts,reports:loadReport,operations:loadOperations,audit:loadAudit,health:loadHealth,catalog:loadCatalog,customers:loadCustomers,suppliers:loadSuppliers,outsourced:loadOutsourced,change:loadChange,sessions:loadSessions,finance:loadFinance,suite:loadSuite,users:loadUsers,devices:loadDevices,controls:loadManagementControls,receipts:loadReceiptSettings};const titles={dashboard:'Dashboard',transactions:'Transactions',shifts:'Till Shifts',reports:'Reports',operations:'Voids & Refunds',audit:'Audit Trail',health:'System Health',catalog:'Stocks & Inventory',customers:'Customers',suppliers:'Suppliers',outsourced:'Outsourced Jobs',change:'Outstanding Change',sessions:'Login Monitoring',finance:'Finance & Profit/Loss',suite:'Business Suite',users:'Users',devices:'Devices',controls:'Sales & Delete Controls',receipts:'Receipt Settings'};
 function page(name){if(['finance','sessions'].includes(name)&&!profile?.is_owner)return alert('Only the branch owner can open this page.');if(['catalog','suite'].includes(name)&&!['manager','administrator','auditor'].includes(profile?.role))return alert('Manager, administrator or auditor access is required.');if(name==='controls'&&!['manager','administrator'].includes(profile?.role))return alert('Manager or administrator access is required.');Object.keys(loaders).forEach(p=>$(p+'Page').classList.toggle('hidden',p!==name));document.querySelectorAll('[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===name));$('pageTitle').textContent=titles[name];loaders[name]()}
-document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>page(b.dataset.page));$('refreshDashboard').onclick=loadDashboard;$('refreshTransactions').onclick=loadTransactions;$('refreshShifts').onclick=loadShifts;$('runReport').onclick=loadReport;$('exportReport').onclick=exportReportCsv;$('refreshOperations').onclick=loadOperations;$('refreshAudit').onclick=loadAudit;$('refreshHealth').onclick=loadHealth;$('refreshCatalog').onclick=loadCatalog;$('refreshInventoryDetails').onclick=loadCatalog;$('portalInventorySearch').oninput=renderPortalInventoryDetails;$('portalInventoryStatus').onchange=()=>{portalStockFilter=$('portalInventoryStatus').value;renderPortalInventoryDetails()};$('exportInventory').onclick=exportInventoryCsv;document.querySelectorAll('[data-portal-stock-filter]').forEach(button=>button.onclick=()=>{portalStockFilter=button.dataset.portalStockFilter;$('portalInventoryStatus').value=portalStockFilter;renderPortalInventoryDetails()});['click','keydown'].forEach(type=>{$('portalLowStockCard').addEventListener(type,event=>activatePortalInventory(event,'all'));$('portalStockHealthCard').addEventListener(type,event=>activatePortalInventory(event,'all'))});$('refreshCustomers').onclick=loadCustomers;$('refreshSuppliers').onclick=loadSuppliers;$('refreshOutsourced').onclick=loadOutsourced;$('refreshChange').onclick=loadChange;$('refreshSessions').onclick=loadSessions;$('refreshFinance').onclick=loadFinance;$('exportFinance').onclick=exportFinanceCsv;$('financeExpenseForm').onsubmit=saveFinanceExpense;$('financeAnchor').onchange=loadFinance;document.querySelectorAll('[data-finance-period]').forEach(button=>button.onclick=()=>setFinancePeriod(button.dataset.financePeriod));$('refreshUsers').onclick=loadUsers;$('refreshDevices').onclick=loadDevices;$('managementSaleForm').onsubmit=saveManagementSale;$('financialResetForm').onsubmit=runFinancialReset;$('managementSaleCatalog').onchange=refreshManagementSalePrice;$('managementSaleCurrency').onchange=refreshManagementSalePrice;$('financialResetScope').onchange=()=>{$('financialResetHint').textContent='Type RESET '+$('financialResetScope').value.toUpperCase()+' exactly to continue.'};$('logoutBtn').onclick=async()=>{await endPortalSession();await supabase.auth.signOut();location.reload()};
+document.querySelectorAll('[data-page]').forEach(b=>b.onclick=()=>page(b.dataset.page));$('refreshDashboard').onclick=loadDashboard;$('refreshTransactions').onclick=loadTransactions;$('refreshShifts').onclick=loadShifts;$('runReport').onclick=loadReport;$('exportReport').onclick=exportReportCsv;$('refreshOperations').onclick=loadOperations;$('refreshAudit').onclick=loadAudit;$('refreshHealth').onclick=loadHealth;$('refreshCatalog').onclick=loadCatalog;$('refreshInventoryDetails').onclick=loadCatalog;$('portalInventorySearch').oninput=renderPortalInventoryDetails;$('portalInventoryStatus').onchange=()=>{portalStockFilter=$('portalInventoryStatus').value;renderPortalInventoryDetails()};$('exportInventory').onclick=exportInventoryCsv;document.querySelectorAll('[data-portal-stock-filter]').forEach(button=>button.onclick=()=>{portalStockFilter=button.dataset.portalStockFilter;$('portalInventoryStatus').value=portalStockFilter;renderPortalInventoryDetails()});['click','keydown'].forEach(type=>{$('portalLowStockCard').addEventListener(type,event=>activatePortalInventory(event,'all'));$('portalStockHealthCard').addEventListener(type,event=>activatePortalInventory(event,'all'))});$('refreshCustomers').onclick=loadCustomers;$('refreshSuppliers').onclick=loadSuppliers;$('refreshOutsourced').onclick=loadOutsourced;$('refreshChange').onclick=loadChange;$('refreshSessions').onclick=loadSessions;$('refreshFinance').onclick=loadFinance;$('exportFinance').onclick=exportFinanceCsv;$('financeExpenseForm').onsubmit=saveFinanceExpense;$('financeAnchor').onchange=loadFinance;document.querySelectorAll('[data-finance-period]').forEach(button=>button.onclick=()=>setFinancePeriod(button.dataset.financePeriod));$('refreshUsers').onclick=loadUsers;$('refreshDevices').onclick=loadDevices;$('managementSaleForm').onsubmit=saveManagementSale;$('financialResetForm').onsubmit=runFinancialReset;$('financialDeletionFilterForm').onsubmit=e=>{e.preventDefault();loadFinancialDeletionCandidates()};$('refreshFinancialDeletion').onclick=loadFinancialDeletionCandidates;$('deleteSelectedSales').onclick=()=>deleteSelectedFinancialRecords('sales');$('deleteSelectedExpenses').onclick=()=>deleteSelectedFinancialRecords('expenses');$('deleteSelectedFinancial').onclick=()=>deleteSelectedFinancialRecords('all');$('selectAllDeletionSales').onchange=e=>qsa('[data-delete-sale]').forEach(box=>box.checked=e.target.checked);$('selectAllDeletionExpenses').onchange=e=>qsa('[data-delete-expense]').forEach(box=>box.checked=e.target.checked);$('managementSaleCatalog').onchange=refreshManagementSalePrice;$('managementSaleCurrency').onchange=refreshManagementSalePrice;$('financialResetScope').onchange=()=>{$('financialResetHint').textContent='Type '+deleteAllConfirmationPhrase($('financialResetScope').value)+' exactly to continue.'};$('logoutBtn').onclick=async()=>{await endPortalSession();await supabase.auth.signOut();location.reload()};
 function startRealtime(){let refreshTimer=null;const refresh=()=>{clearTimeout(refreshTimer);refreshTimer=setTimeout(async()=>{try{await loadDashboard();const active=document.querySelector('[data-page].active')?.dataset.page;if(active==='transactions')await loadTransactions();if(active==='shifts')await loadShifts();if(active==='operations')await loadOperations();if(active==='health')await loadHealth();if(active==='catalog')await loadCatalog();if(active==='change')await loadChange();if(active==='outsourced')await loadOutsourced();if(active==='sessions')await loadSessions();if(active==='finance')await loadFinance();if(active==='suite')await Promise.all([loadSuiteDashboard(),loadSuiteRecords()])}catch(_error){}},350)};let channel=supabase.channel('omnihub-v1-live').on('postgres_changes',{event:'*',schema:'public',table:'sales'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'sale_lines'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'expenses'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'catalog_items'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'till_shifts'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'operation_requests'},refresh).on('postgres_changes',{event:'*',schema:'public',table:'change_settlements'},refresh);['business_documents','production_jobs','management_approvals','notifications'].forEach(table=>{channel=channel.on('postgres_changes',{event:'*',schema:'public',table},refresh)});channel.subscribe(state=>{const badge=$('liveBadge');if(!badge)return;const connected=state==='SUBSCRIBED';badge.textContent=connected?'LIVE':state==='CHANNEL_ERROR'?'RETRYING':'CONNECTING';badge.classList.toggle('offline',!connected)})}
 const today=portalLocalDate();$('reportFrom').value=today;$('reportTo').value=today;$('financeAnchor').value=today;$('financeExpenseDate').value=today;$('managementSaleDate').value=managementLocalDateTime();const {data:{session}}=await supabase.auth.getSession();if(session){await showApp('restored');startRealtime();if(location.hash==='#suite'&&['manager','administrator','auditor'].includes(profile?.role))page('suite');if(location.hash==='#finance'&&profile?.is_owner)page('finance')}
 </script>
