@@ -24,7 +24,8 @@ new vm.Script(quotationPdf,{filename:'quotation-pdf.js'});
 const checks=[
   [order.includes('/functions/v1/customer-order-public'),'customer orders use protected Edge gateway'],
   [!order.includes('/rest/v1/rpc/'),'customer orders do not call privileged RPCs directly'],
-  [html.includes('OmniHub Solutions Portal v2.7.2'),'portal release version'],
+  [html.includes('OmniHub Solutions Portal v2.7.3'),'portal release version'],
+  [(html.match(/\.neq\('status','voided'\)/g)||[]).length>=4,'voided sales hidden from portal lists and charts'],
   [html.includes('src="./vendor/supabase.js"')&&html.includes('window.supabase||{}')&&!html.includes("from './vendor/supabase.js'"),'local Supabase browser bootstrap'],
   [vendor.startsWith('var supabase=')&&vendor.includes('createClient'),'vendored Supabase UMD contract'],
   [html.includes('OmniHubCRMContext')&&html.includes('src="crm-module.js"'),'CRM host integration'],
@@ -50,4 +51,4 @@ for(const [ok,label] of checks)if(!ok)throw new Error('Validation failed: '+labe
 const ids=[...html.matchAll(/\sid="([^"]+)"/g),...crm.matchAll(/\sid=\\"([^"]+)\\"/g)].map(x=>x[1]);
 const dup=ids.filter((id,i)=>ids.indexOf(id)!==i);
 if(dup.length)throw new Error('Duplicate UI IDs: '+[...new Set(dup)].join(', '));
-console.log('Portal v2.7.2 management, deletion, CRM, and quotation validation passed.');
+console.log('Portal v2.7.3 management, deletion, CRM, and quotation validation passed.');
