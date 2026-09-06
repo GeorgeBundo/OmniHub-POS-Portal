@@ -6,6 +6,7 @@ on:
     paths:
       - "index.html"
       - "quotation-pdf.js"
+      - "print-receipt.html"
       - "crm-module.js"
       - "order.html"
       - "order-v21.js"
