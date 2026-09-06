@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>OmniHub Solutions Portal v2.7.3</title>
+<title>OmniHub Solutions Portal v2.7.5</title>
 <meta name="application-name" content="OmniHub Solutions Portal">
 <meta name="description" content="Secure OmniHub POS management portal.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -844,7 +844,7 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
 </section>
 
 <section id="app" class="app hidden">
-  <aside class="sidebar"><div class="sidebar-logo"><img id="sidebarLogo" alt="OmniHub Solutions logo"><span>OMNIHUB POS v2.7.3</span></div><div class="nav">
+  <aside class="sidebar"><div class="sidebar-logo"><img id="sidebarLogo" alt="OmniHub Solutions logo"><span>OMNIHUB POS v2.7.5</span></div><div class="nav">
     <button data-page="dashboard" class="active">Dashboard</button>
     <button data-page="transactions">Transactions</button>
     <button data-page="shifts" data-roles="supervisor,manager,administrator,auditor">Till Shifts</button>
@@ -992,8 +992,11 @@ html[data-theme="dark"] .notice{border-color:#6C5521;background:#3C2D08;color:#F
             <div class="field"><label>Sale date and time</label><input id="managementSaleDate" type="datetime-local" required></div>
             <div class="field"><label>Payment method</label><select id="managementSalePayment"><option value="cash">Cash</option><option value="ecocash">EcoCash</option><option value="card">Card</option><option value="bank_transfer">Bank transfer</option></select></div>
             <div class="field"><label>Payment reference</label><input id="managementSaleReference" maxlength="200"></div>
+            <div class="field"><label>Printer</label><select id="managementSalePrinter"><option value="dialog">Open system printer selection</option><option value="none">Do not print a receipt</option></select></div>
+            <div class="field"><label>Receipt size</label><select id="managementSaleReceiptSize"><option value="A5">A5 portrait</option><option value="A4">A4 portrait</option><option value="thermal80">Thermal 80 mm</option><option value="thermal58">Thermal 58 mm</option></select></div>
+            <div class="field full muted">Desktop browsers do not expose installed printer names to websites. Choose “Open system printer selection” here, then choose the actual printer in the browser print dialog.</div>
             <div class="field full"><label>Reason (minimum 5 characters)</label><textarea id="managementSaleReason" required minlength="5" maxlength="1000"></textarea></div>
-            <div class="full"><button class="btn primary" type="submit">Record audited sale</button></div>
+            <div class="full"><button class="btn primary" type="submit">Record audited sale and continue</button></div>
           </form>
           <div id="managementSaleStatus" class="status hidden"></div>
         </div>
@@ -1071,6 +1074,34 @@ const SUPABASE_URL='https://sutdhmqwrxeumrarctoc.supabase.co';
 const SUPABASE_KEY='sb_publishable_Cfx2QV12ThP50sXrmFrWsw_PNlmNVei';
 const supabase=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:false,autoRefreshToken:true,detectSessionInUrl:true}});
 let profile=null;window.OmniHubCRMContext={supabase:()=>supabase,getProfile:()=>profile};const $=id=>document.getElementById(id);const money=(v,c='USD')=>c+' '+Number(v||0).toFixed(2);const currencyMap=(values)=>['USD','ZiG'].map(c=>money(values?.[c]||0,c)).join(' · ');const td=(v)=>{const e=document.createElement('td');e.textContent=v==null?'—':String(v);return e};const fillSelect=(id,rows,label,includeBlank=false,blankLabel='Select')=>{const select=$(id);select.replaceChildren();if(includeBlank)select.add(new Option(blankLabel,''));rows.forEach(row=>select.add(new Option(label(row),row.id)))};
+const portalReceiptPrintJobs=new Map();
+window.addEventListener('message',event=>{
+  if(event.origin!==location.origin||event.data?.type!=='omnihub-print-ready')return;
+  const job=portalReceiptPrintJobs.get(event.data.token);
+  if(!job||event.source!==job.window)return;
+  job.ready=true;
+  if(job.payload){job.window.postMessage({type:'omnihub-print-payload',token:event.data.token,payload:job.payload},location.origin);portalReceiptPrintJobs.delete(event.data.token)}
+});
+function preparePortalReceiptPrint(){
+  if($('managementSalePrinter').value==='none')return null;
+  const token=crypto.randomUUID();
+  const printWindow=window.open('print-receipt.html#'+encodeURIComponent(token),'omnihub-receipt-'+token);
+  if(!printWindow)return false;
+  portalReceiptPrintJobs.set(token,{window:printWindow,ready:false,payload:null});
+  return {token,window:printWindow};
+}
+function cancelPortalReceiptPrint(job){
+  if(!job)return;
+  portalReceiptPrintJobs.delete(job.token);
+  try{job.window.close()}catch(_error){}
+}
+function deliverPortalReceiptPrint(job,payload){
+  if(!job)return;
+  const pending=portalReceiptPrintJobs.get(job.token);
+  if(!pending)return;
+  pending.payload=payload;
+  if(pending.ready){pending.window.postMessage({type:'omnihub-print-payload',token:job.token,payload},location.origin);portalReceiptPrintJobs.delete(job.token)}
+}
 
 function status(id,msg,type=''){const e=$(id);e.textContent=msg;e.className='status '+type;e.classList.remove('hidden')}function hideStatus(id){$(id).classList.add('hidden')}
 function switchAuth(mode){['login','setup','reset'].forEach(x=>{$(x+'Tab').classList.toggle('active',x===mode);$(x+'Form').classList.toggle('hidden',x!==mode)});$('newPasswordForm').classList.add('hidden');hideStatus('authStatus')}
@@ -1079,7 +1110,7 @@ async function loadProfile(){const {data:{user}}=await supabase.auth.getUser();i
 function applyRoleNavigation(){document.querySelectorAll('[data-roles]').forEach(b=>{const roles=b.dataset.roles.split(',');b.classList.toggle('hidden',!roles.includes(profile.role))});document.querySelectorAll('[data-owner-only]').forEach(b=>b.classList.toggle('hidden',!profile.is_owner))}
 function configureCatalogAccess(){const canWrite=['manager','administrator'].includes(profile.role);$('catalogWritePanel').classList.toggle('hidden',!canWrite);$('catalogReadOnly').classList.toggle('hidden',profile.role!=='auditor')}
 let portalSessionStarted=false,portalHeartbeatTimer=null,portalSessionId=sessionStorage.getItem('omnihubPortalSession')||crypto.randomUUID();sessionStorage.setItem('omnihubPortalSession',portalSessionId);
-async function ensurePortalSession(loginMethod='restored'){if(!portalSessionStarted){const result=await supabase.rpc('record_user_session',{p_session_id:portalSessionId,p_client_type:'web',p_client_name:navigator.platform||'Browser',p_app_version:'2.7.3',p_user_agent:navigator.userAgent,p_device_id:null,p_login_method:loginMethod});portalSessionStarted=!result.error;return portalSessionStarted}const heartbeat=await supabase.rpc('heartbeat_user_session',{p_session_id:portalSessionId});if(heartbeat.error||heartbeat.data!==true){portalSessionStarted=false;return ensurePortalSession('restored')}return true}
+async function ensurePortalSession(loginMethod='restored'){if(!portalSessionStarted){const result=await supabase.rpc('record_user_session',{p_session_id:portalSessionId,p_client_type:'web',p_client_name:navigator.platform||'Browser',p_app_version:'2.7.5',p_user_agent:navigator.userAgent,p_device_id:null,p_login_method:loginMethod});portalSessionStarted=!result.error;return portalSessionStarted}const heartbeat=await supabase.rpc('heartbeat_user_session',{p_session_id:portalSessionId});if(heartbeat.error||heartbeat.data!==true){portalSessionStarted=false;return ensurePortalSession('restored')}return true}
 async function recordPortalSession(loginMethod='restored'){await ensurePortalSession(loginMethod);if(!portalHeartbeatTimer)portalHeartbeatTimer=setInterval(()=>ensurePortalSession('restored'),300000)}
 async function endPortalSession(){if(portalHeartbeatTimer){clearInterval(portalHeartbeatTimer);portalHeartbeatTimer=null}await supabase.rpc('end_user_session',{p_session_id:portalSessionId,p_reason:'signed_out'});portalSessionStarted=false;sessionStorage.removeItem('omnihubPortalSession')}
 async function showApp(loginMethod='restored'){profile=await loadProfile();if(!profile){status('authStatus','This account has no OmniHub profile. Complete first setup or ask an administrator to create the account.','error');return}if(!profile.is_active){status('authStatus','This account is disabled.','error');await supabase.auth.signOut();return}$('auth').classList.add('hidden');$('app').classList.remove('hidden');$('profileChip').textContent=profile.display_name+' · '+profile.role+(profile.is_owner?' · owner':'');applyRoleNavigation();configureCatalogAccess();await recordPortalSession(loginMethod);await loadDashboard()}
@@ -1225,6 +1256,8 @@ async function saveManagementSale(event){
   if(payment!=='cash'&&!reference)return status('managementSaleStatus','A payment reference is required for non-cash sales.','error');
   const localDate=$('managementSaleDate').value;
   if(!localDate)return status('managementSaleStatus','Choose the original sale date and time.','error');
+  const printJob=preparePortalReceiptPrint();
+  if(printJob===false)return status('managementSaleStatus','The printer-selection window was blocked. Allow pop-ups for this portal, or choose “Do not print a receipt”, then try again.','error');
   status('managementSaleStatus','Recording sale…');
   const {data,error}=await supabase.rpc('record_management_sale',{
     p_sale_date:new Date(localDate).toISOString(),
@@ -1237,8 +1270,14 @@ async function saveManagementSale(event){
     p_catalog_item_id:$('managementSaleCatalog').value||null,
     p_payment_reference:reference||null
   });
-  if(error)return status('managementSaleStatus',error.message,'error');
-  status('managementSaleStatus','Sale '+data.receipt_number+' recorded for '+new Date(data.sale_date).toLocaleString()+'.','ok');
+  if(error){cancelPortalReceiptPrint(printJob);return status('managementSaleStatus',error.message,'error')}
+  if(printJob){
+    const settingsResult=await supabase.from('receipt_settings').select('business_name,receipt_title,address_line_1,address_line_2,phone_1,phone_2,thank_you_message,custom_header,custom_information,terms_and_conditions,custom_footer,print_logo').eq('branch_id',profile.branch_id).maybeSingle();
+    const settings=settingsResult.data||{};
+    const quantity=Number($('managementSaleQuantity').value),unitPrice=Number($('managementSalePrice').value),currency=$('managementSaleCurrency').value;
+    deliverPortalReceiptPrint(printJob,{paper:$('managementSaleReceiptSize').value,logo:settings.print_logo===false?'':$('sidebarLogo').src,business:settings.business_name||'OmniHub Solutions',title:settings.receipt_title||'SALES RECEIPT',address:[settings.address_line_1,settings.address_line_2].filter(Boolean).join(', '),phones:[settings.phone_1,settings.phone_2].filter(Boolean).join(' / '),header:settings.custom_header||'',information:settings.custom_information||'',terms:settings.terms_and_conditions||'',footer:settings.custom_footer||'',thanks:settings.thank_you_message||'Thank you for your business',receiptNumber:data.receipt_number,date:new Date(data.sale_date).toLocaleString(),till:'MANAGEMENT-PORTAL',cashier:profile.display_name,currency,description:$('managementSaleDescription').value.trim(),quantity,unitPrice,total:Number(data.total??quantity*unitPrice),payment:payment.replaceAll('_',' '),reference});
+  }
+  status('managementSaleStatus','Sale '+data.receipt_number+' recorded for '+new Date(data.sale_date).toLocaleString()+(printJob?' and sent to printer selection.':'. Receipt printing was skipped.'),'ok');
   $('managementSaleReason').value='';$('managementSaleReference').value='';$('managementSaleDate').value=managementLocalDateTime();
   await Promise.all([loadDashboard(),loadTransactions(),loadManagementControls()]);
 }
