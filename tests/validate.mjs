@@ -6,6 +6,7 @@ const html=fs.readFileSync('index.html','utf8');
 const crm=fs.readFileSync('crm-module.js','utf8');
 const quotationPdf=fs.readFileSync('quotation-pdf.js','utf8');
 const vendor=fs.readFileSync('vendor/supabase.js','utf8');
+const receiptPrint=fs.readFileSync('print-receipt.html','utf8');
 
 const localDependencies=[
   ...[...html.matchAll(/<script\b[^>]*\bsrc=["']([^"']+)["'][^>]*>/gi)].map(x=>x[1]),
@@ -24,7 +25,7 @@ new vm.Script(quotationPdf,{filename:'quotation-pdf.js'});
 const checks=[
   [order.includes('/functions/v1/customer-order-public'),'customer orders use protected Edge gateway'],
   [!order.includes('/rest/v1/rpc/'),'customer orders do not call privileged RPCs directly'],
-  [html.includes('OmniHub Solutions Portal v2.7.3'),'portal release version'],
+  [html.includes('OmniHub Solutions Portal v2.7.5'),'portal release version'],
   [(html.match(/\.neq\('status','voided'\)/g)||[]).length>=4,'voided sales hidden from portal lists and charts'],
   [html.includes('src="./vendor/supabase.js"')&&html.includes('window.supabase||{}')&&!html.includes("from './vendor/supabase.js'"),'local Supabase browser bootstrap'],
   [vendor.startsWith('var supabase=')&&vendor.includes('createClient'),'vendored Supabase UMD contract'],
@@ -45,10 +46,16 @@ const checks=[
   [html.includes('Delete selected sales or expenses')&&html.includes('deleteSelectedSales')&&html.includes('deleteSelectedExpenses'),'visible selective-deletion controls'],
   [html.includes('get_financial_deletion_candidates')&&html.includes('delete_selected_financial_records'),'selective-deletion RPC clients'],
   [html.includes('DELETE SELECTED')&&html.includes('DELETE ALL SALES')&&html.includes('DELETE ALL EXPENSES'),'explicit financial-deletion confirmations'],
+  [html.includes('id="managementSalePrinter"')&&html.includes('Open system printer selection')&&html.includes('Do not print a receipt'),'pre-transaction printer choice'],
+  [html.includes('id="managementSaleReceiptSize"')&&html.includes('A5 portrait')&&html.includes('Thermal 58 mm'),'receipt-size choice'],
+  [html.includes('preparePortalReceiptPrint')&&html.includes('deliverPortalReceiptPrint'),'safe post-commit receipt delivery'],
+  [receiptPrint.includes("event.origin!==origin")&&receiptPrint.includes("event.source!==window.opener"),'print-window origin and opener validation'],
+  [receiptPrint.includes('@page{size:A5 portrait')&&receiptPrint.includes('@page{size:A4 portrait'),'portrait document print rules'],
+  [receiptPrint.includes("payload.logo.startsWith('data:image/png;base64,')"),'receipt logo source restriction'],
 ];
 for(const [ok,label] of checks)if(!ok)throw new Error('Validation failed: '+label);
 
 const ids=[...html.matchAll(/\sid="([^"]+)"/g),...crm.matchAll(/\sid=\\"([^"]+)\\"/g)].map(x=>x[1]);
 const dup=ids.filter((id,i)=>ids.indexOf(id)!==i);
 if(dup.length)throw new Error('Duplicate UI IDs: '+[...new Set(dup)].join(', '));
-console.log('Portal v2.7.3 management, deletion, CRM, and quotation validation passed.');
+console.log('Portal v2.7.5 management, printer selection, deletion, CRM, and quotation validation passed.');
