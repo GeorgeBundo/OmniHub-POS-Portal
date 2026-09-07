@@ -36,7 +36,9 @@ jobs:
         with:
           node-version: "24"
       - name: Validate management portal
-        run: node tests/validate.mjs
+        run: |
+          node tests/validate.mjs
+          node --test tests/customer-name.test.mjs
       - name: Syntax-check quotation PDF generator
         run: node --check quotation-pdf.js
       - name: Verify quotation create and download workflow

@@ -33,7 +33,7 @@ body.thermal{padding:0;background:#fff}.thermal .receipt{width:100%;min-height:0
 <main id="receipt" class="receipt" hidden>
   <div id="header" class="header" hidden></div>
   <div class="brand"><div><img id="logo" class="logo" alt="OmniHub Solutions logo"><h1 id="business"></h1><div id="contact" class="contact"></div></div><div id="title" class="title"></div></div>
-  <div class="meta"><strong>Receipt number</strong><span id="receiptNumber"></span><strong>Date</strong><span id="date"></span><strong>Till</strong><span id="till"></span><strong>Cashier</strong><span id="cashier"></span><strong>Payment</strong><span id="payment"></span></div>
+  <div class="meta"><strong>Receipt number</strong><span id="receiptNumber"></span><strong>Date</strong><span id="date"></span><strong>Till</strong><span id="till"></span><strong>Cashier</strong><span id="cashier"></span><strong id="customerLabel" hidden>Customer</strong><span id="customerName" style="overflow-wrap:anywhere;min-width:0" hidden></span><strong>Payment</strong><span id="payment"></span></div>
   <table><thead><tr><th>Description</th><th class="number">Qty</th><th class="number">Unit price</th><th class="number">Amount</th></tr></thead><tbody><tr><td id="description"></td><td id="quantity" class="number"></td><td id="unitPrice" class="number"></td><td id="amount" class="number"></td></tr></tbody></table>
   <div id="total" class="total"></div>
   <div id="information" class="extra" hidden></div>
@@ -64,6 +64,8 @@ function render(payload){
   setText('date',payload.date);
   setText('till',payload.till);
   setText('cashier',payload.cashier);
+  applyOptional('customerName',payload.customerName);
+  byId('customerLabel').hidden=!payload.customerName;
   setText('payment',payload.payment+(payload.reference?' · '+payload.reference:''));
   setText('description',payload.description);
   setText('quantity',Number(payload.quantity||0).toFixed(3).replace(/\.?0+$/,''));
