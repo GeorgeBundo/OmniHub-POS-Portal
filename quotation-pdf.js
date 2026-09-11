@@ -242,7 +242,7 @@
         try {
           await navigator.share({
             files: [file],
-            title: safeName.replace(/\\.pdf$/i, ''),
+            title: safeName.replace(/\.pdf$/i, ''),
             text: 'OmniHub quotation PDF'
           });
           setTimeout(revoke, 60 * 1000);
@@ -268,4 +268,126 @@
   }
 
   global.OmniHubQuotationPdf = { createBytes, download };
+})(window);
+
+(function installOmniHubFinanceV277Compat(global) {
+  const install = () => {
+    try {
+      const note = document.querySelector('#financePage .allocation-note');
+      if (note) {
+        note.innerHTML = '<strong>Actual P/L:</strong> Revenue − cost of sales − recorded expenses. <strong>Allocation plan per sale:</strong> 10% tithe, 10% repairs, 10% rent and electricity, 20% expense reserve, 10% emergency fund and 10% savings. Cost of Sale remains the existing item-cost calculation. Any balance after Cost of Sale and the fixed reserves is shown separately. Allocations are planning reserves and are not counted as actual expenses until an expense is recorded.';
+      }
+
+      const updateHeader = () => {
+        const row = document.querySelector('#financeSaleRows')?.closest('table')?.querySelector('thead tr');
+        if (row) {
+          row.innerHTML = '<th>Receipt / date</th><th>Till</th><th>Status</th><th>Revenue</th><th>Cost of sale</th><th>Cost %</th><th>Tithe 10%</th><th>Repairs 10%</th><th>Rent &amp; electricity 10%</th><th>Expense reserve 20%</th><th>Emergency fund 10%</th><th>Savings 10%</th><th>Remaining</th>';
+        }
+      };
+      updateHeader();
+
+      global.financeCard = function financeCardV277(currency, summary) {
+        const card = document.createElement('article');
+        card.className = 'finance-currency';
+        const profit = Number(summary.profit_loss || 0);
+        const estimate = Number(summary.estimated_cost_sales || 0);
+        const remaining = Number(summary.post_allocation_balance || 0);
+        card.innerHTML = `<h3>${currency} · ${Number(summary.transactions || 0)} transaction(s)</h3><div class="finance-kpis"><div class="finance-kpi"><span>Revenue</span><strong>${money(summary.revenue, currency)}</strong></div><div class="finance-kpi"><span>Cost of sales</span><strong>${money(summary.cost_of_sales, currency)}</strong></div><div class="finance-kpi"><span>Recorded expense</span><strong>${money(summary.operating_expenses, currency)}</strong></div><div class="finance-kpi"><span>Total expense</span><strong>${money(summary.total_expenses, currency)}</strong></div><div class="finance-kpi ${profit < 0 ? 'loss' : 'profit'}"><span>Profit / loss</span><strong>${money(profit, currency)}</strong></div><div class="finance-kpi"><span>Tithe · 10%</span><strong>${money(summary.tithes, currency)}</strong></div><div class="finance-kpi"><span>Repairs · 10%</span><strong>${money(summary.repairs_maintenance, currency)}</strong></div><div class="finance-kpi"><span>Rent &amp; electricity · 10%</span><strong>${money(summary.rent_electricity, currency)}</strong></div><div class="finance-kpi"><span>Expense reserve · 20%</span><strong>${money(summary.expense_reserve, currency)}</strong></div><div class="finance-kpi"><span>Emergency fund · 10%</span><strong>${money(summary.emergency_fund, currency)}</strong></div><div class="finance-kpi"><span>Savings · 10%</span><strong>${money(summary.savings, currency)}</strong></div><div class="finance-kpi ${remaining < 0 ? 'loss' : ''}"><span>Remaining after reserves &amp; CoS</span><strong>${money(remaining, currency)}</strong></div></div>${estimate ? `<div class="cost-estimate" style="margin-top:11px">${estimate} historical sale(s) use the current catalogue cost estimate. New sales retain their original unit cost.</div>` : ''}`;
+        return card;
+      };
+
+      global.renderFinance = function renderFinanceV277(data) {
+        financeData = data;
+        updateHeader();
+        const summary = $('financeSummary');
+        summary.innerHTML = '';
+        ['USD', 'ZiG'].forEach(currency => summary.appendChild(global.financeCard(currency, data.summary?.[currency] || {})));
+        $('financePeriodLabel').textContent = `${String(data.period || financePeriod).replace(/^./, value => value.toUpperCase())} · ${data.from} to ${data.to}`;
+        document.querySelectorAll('[data-finance-period]').forEach(button => button.classList.toggle('active', button.dataset.financePeriod === financePeriod));
+
+        const sales = $('financeSaleRows');
+        sales.innerHTML = '';
+        financeExportRows = [
+          ['Period', data.from + ' to ' + data.to],
+          [],
+          ['Currency', 'Revenue', 'Cost of sales', 'Recorded expenses', 'Total expenses', 'Profit/Loss', 'Tithe 10%', 'Repairs 10%', 'Rent & electricity 10%', 'Expense reserve 20%', 'Emergency fund 10%', 'Savings 10%', 'Remaining after reserves & CoS']
+        ];
+        ['USD', 'ZiG'].forEach(currency => {
+          const item = data.summary?.[currency] || {};
+          financeExportRows.push([currency, item.revenue || 0, item.cost_of_sales || 0, item.operating_expenses || 0, item.total_expenses || 0, item.profit_loss || 0, item.tithes || 0, item.repairs_maintenance || 0, item.rent_electricity || 0, item.expense_reserve || 0, item.emergency_fund || 0, item.savings || 0, item.post_allocation_balance || 0]);
+        });
+        financeExportRows.push([], ['Receipt', 'Date', 'Till', 'Status', 'Currency', 'Revenue', 'Cost of sale', 'Cost %', 'Tithe 10%', 'Repairs 10%', 'Rent & electricity 10%', 'Expense reserve 20%', 'Emergency fund 10%', 'Savings 10%', 'Remaining after reserves & CoS', 'Cost basis']);
+
+        (data.sales || []).forEach(sale => {
+          const tr = document.createElement('tr');
+          const receipt = td('');
+          receipt.append(document.createTextNode(sale.receipt_number || '—'), document.createElement('br'), document.createTextNode(new Date(sale.occurred_at).toLocaleString()));
+          tr.appendChild(receipt);
+          tr.appendChild(td(sale.till_code));
+          const statusCell = td('');
+          const badge = document.createElement('span');
+          badge.className = 'finance-status ' + sale.status;
+          badge.textContent = sale.status;
+          statusCell.appendChild(badge);
+          tr.appendChild(statusCell);
+          tr.appendChild(td(money(sale.revenue, sale.currency)));
+          const cost = td(money(sale.cost_of_sales, sale.currency));
+          if (sale.cost_is_estimate) {
+            cost.appendChild(document.createElement('br'));
+            const estimateNote = document.createElement('span');
+            estimateNote.className = 'cost-estimate';
+            estimateNote.textContent = 'Current cost estimate';
+            cost.appendChild(estimateNote);
+          }
+          tr.appendChild(cost);
+          tr.appendChild(td(Number(sale.cost_percentage || 0).toFixed(2) + '%'));
+          tr.appendChild(td(money(sale.tithes, sale.currency)));
+          tr.appendChild(td(money(sale.repairs_maintenance, sale.currency)));
+          tr.appendChild(td(money(sale.rent_electricity, sale.currency)));
+          tr.appendChild(td(money(sale.expense_reserve, sale.currency)));
+          tr.appendChild(td(money(sale.emergency_fund, sale.currency)));
+          tr.appendChild(td(money(sale.savings, sale.currency)));
+          const remaining = td(money(sale.post_allocation_balance, sale.currency));
+          if (Number(sale.post_allocation_balance) < 0) remaining.className = 'danger-text';
+          tr.appendChild(remaining);
+          sales.appendChild(tr);
+          financeExportRows.push([sale.receipt_number, sale.occurred_at, sale.till_code, sale.status, sale.currency, sale.revenue, sale.cost_of_sales, sale.cost_percentage, sale.tithes, sale.repairs_maintenance, sale.rent_electricity, sale.expense_reserve, sale.emergency_fund, sale.savings, sale.post_allocation_balance, sale.cost_is_estimate ? 'Current catalogue estimate' : 'Sale-time cost']);
+        });
+
+        if (!(data.sales || []).length) {
+          const tr = document.createElement('tr');
+          const cell = td('No sales in this period.');
+          cell.colSpan = 13;
+          cell.className = 'inventory-empty';
+          tr.appendChild(cell);
+          sales.appendChild(tr);
+        }
+
+        const expenses = $('financeExpenseRows');
+        expenses.innerHTML = '';
+        financeExportRows.push([], ['Expense date', 'Number', 'Description', 'Category', 'Method', 'Currency', 'Amount', 'Reference']);
+        (data.expenses || []).forEach(expense => {
+          const tr = document.createElement('tr');
+          [expense.occurred_on, `${expense.expense_number} · ${expense.description}`, expense.category, String(expense.payment_method || '').replaceAll('_', ' '), expense.currency, money(expense.amount, expense.currency), expense.reference || '—'].forEach(value => tr.appendChild(td(value)));
+          expenses.appendChild(tr);
+          financeExportRows.push([expense.occurred_on, expense.expense_number, expense.description, expense.category, expense.payment_method, expense.currency, expense.amount, expense.reference || '']);
+        });
+        if (!(data.expenses || []).length) {
+          const tr = document.createElement('tr');
+          const cell = td('No recorded expenses in this period.');
+          cell.colSpan = 7;
+          cell.className = 'inventory-empty';
+          tr.appendChild(cell);
+          expenses.appendChild(tr);
+        }
+      };
+
+      if (typeof financeData === 'object' && financeData) global.renderFinance(financeData);
+    } catch (error) {
+      console.error('OmniHub v2.7.7 finance compatibility layer failed', error);
+    }
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
+  else queueMicrotask(install);
 })(window);
