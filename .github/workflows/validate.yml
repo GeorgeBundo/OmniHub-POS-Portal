@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - "index.html"
+      - "sale-allocations.js"
       - "quotation-pdf.js"
       - "print-receipt.html"
       - "crm-module.js"
@@ -16,6 +17,7 @@ on:
     branches: [main]
     paths:
       - "index.html"
+      - "sale-allocations.js"
       - "quotation-pdf.js"
       - "crm-module.js"
       - "order.html"
@@ -38,7 +40,7 @@ jobs:
       - name: Validate management portal
         run: |
           node tests/validate.mjs
-          node --test tests/customer-name.test.mjs
+          node --test tests/customer-name.test.mjs tests/sale-allocations.test.mjs
       - name: Syntax-check quotation PDF generator
         run: node --check quotation-pdf.js
       - name: Verify quotation create and download workflow
@@ -51,3 +53,4 @@ jobs:
         run: node --check order-v21.js
       - name: Verify ordering page loads the completed client
         run: grep -Fq '<script src="order-v21.js"></script>' order.html
+
